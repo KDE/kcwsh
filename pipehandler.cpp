@@ -6,7 +6,6 @@ SECURITY_ATTRIBUTES PipeHandler::s_saAttr = {   sizeof(SECURITY_ATTRIBUTES),
                                             };
 
 PipeHandler::PipeHandler( STREAM_TYPE stt ) {
-    OutputDebugString("f");
     if ( ! CreatePipe(&m_read, &m_write, &s_saAttr, 0) ) {
         OutputDebugString("failed to create pipe!");
         return;
