@@ -15,11 +15,14 @@ std::string GetModulePath(HMODULE hModule)
 	return strPath.substr(0, strPath.rfind('\\'));
 }
 
-bool ClientHandler::start() {
+bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     STARTUPINFO siWow;
     ::ZeroMemory(&siWow, sizeof(STARTUPINFO));
 
     siWow.cb            = sizeof(STARTUPINFO);
+    if(_stdin) siWow.hStdInput = _stdin;
+    if(_stdout) siWow.hStdOutput = _stdout;
+    if(_stderr) siWow.hStdError = _stderr;
 //    siWow.dwFlags       = STARTF_USESHOWWINDOW;
 //    siWow.wShowWindow   = SW_HIDE;
     

@@ -1,12 +1,23 @@
 #ifndef PIPEHANDLER_H
 #define PIPEHANDLER_H
 
+#include <windows.h>
+
 class PipeHandler {
     public:
-        PipeHandler();
+        typedef enum {  STDIN_PIPE,
+                        STDOUT_PIPE,
+                        STDERR_PIPE
+                     } STREAM_TYPE;
+        PipeHandler( STREAM_TYPE stt );
         void read();
         void write();
+        HANDLE readHandle();
+        HANDLE writeHandle();
     private:
-        static SECURITY_ATTRIBUTES m_saAttr;
+        static SECURITY_ATTRIBUTES s_saAttr;
+        STREAM_TYPE m_streamType;
+        HANDLE m_read;
+        HANDLE m_write;
 };
 #endif /* PIPEHANDLER_H */

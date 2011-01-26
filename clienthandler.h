@@ -9,9 +9,8 @@ class ClientHandler {
     public:
         ClientHandler(std::string procname);
         
-        bool start();
+        bool start(HANDLE _stdin = 0, HANDLE _stdout = 0, HANDLE _stderr = 0);
         bool inject();
-        bool inject2();
     private:
         PROCESS_INFORMATION m_procInfo;
         std::string m_procName;

@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include "clienthandler.h"
+#include "pipehandler.h"
 
 using namespace std;
 
@@ -26,8 +27,11 @@ int main(int argc, char **argv) {
         }
     }
     ClientHandler handler("C:\\Windows\\SysWOW64\\cmd.exe");
+    PipeHandler in(PipeHandler::STDIN_PIPE);
+    PipeHandler out(PipeHandler::STDOUT_PIPE);
+    PipeHandler err(PipeHandler::STDERR_PIPE);
     
-    cout << "Starting process: " << ((handler.start()) ? "succeeded" : "failed") << endl;
+    cout << "Starting process: " << ((handler.start(in.readHandle(), out.writeHandle(), err.writeHandle())) ? "succeeded" : "failed") << endl;
     cout << "Injecting Dll: " << ((handler.inject()) ? "succeeded" : "failed") << endl;
     
     return 0;
