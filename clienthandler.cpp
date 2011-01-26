@@ -5,14 +5,14 @@ ClientHandler::ClientHandler( std::string procname ) : m_procName( procname ) {
 
 std::string GetModulePath(HMODULE hModule)
 {
-	TCHAR szModulePath[MAX_PATH+1];
-	::ZeroMemory(szModulePath, (MAX_PATH+1));
+    TCHAR szModulePath[MAX_PATH+1];
+    ::ZeroMemory(szModulePath, (MAX_PATH+1));
 
-	::GetModuleFileName(hModule, szModulePath, MAX_PATH);
+    ::GetModuleFileName(hModule, szModulePath, MAX_PATH);
 
-	std::string strPath(szModulePath);
+    std::string strPath(szModulePath);
 
-	return strPath.substr(0, strPath.rfind('\\'));
+    return strPath.substr(0, strPath.rfind('\\'));
 }
 
 bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
@@ -82,17 +82,17 @@ bool ClientHandler::inject() {
 
     ip.pB = code;
 
-    *ip.pB++ = 0x68;			// push  eip
+    *ip.pB++ = 0x68;            // push  eip
     *ip.pI++ = context.Eip;
-    *ip.pB++ = 0x9c;			// pushf
-    *ip.pB++ = 0x60;			// pusha
-    *ip.pB++ = 0x68;			// push  "path\to\our.dll"
+    *ip.pB++ = 0x9c;            // pushf
+    *ip.pB++ = 0x60;            // pusha
+    *ip.pB++ = 0x68;            // push  "path\to\our.dll"
     *ip.pI++ = (UINT_PTR)mem + codeSize;
-    *ip.pB++ = 0xe8;			// call  LoadLibraryW
+    *ip.pB++ = 0xe8;            // call  LoadLibraryW
     *ip.pI++ = (UINT_PTR)fnLoadLibrary - ((UINT_PTR)mem + (ip.pB + 4 - code));
-    *ip.pB++ = 0x61;			// popa
-    *ip.pB++ = 0x9d;			// popf
-    *ip.pB++ = 0xc3;			// ret
+    *ip.pB++ = 0x61;            // popa
+    *ip.pB++ = 0x9d;            // popf
+    *ip.pB++ = 0xc3;            // ret
 
     WriteProcessMemory(m_procInfo.hProcess, mem, code, memLen, NULL);
     FlushInstructionCache(m_procInfo.hProcess, mem, memLen);
