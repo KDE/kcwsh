@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <windows.h>
+#include <Shlobj.h>
 
 #include "clienthandler.h"
 #include "pipehandler.h"
@@ -19,6 +20,21 @@ void usage() {
          << "Redistributable under GPLv3" << endl;
 }
 
+std::string getDefaultCmdInterpreter() {
+    TCHAR szPath[MAX_PATH];
+
+    if(SUCCEEDED(SHGetFolderPath(NULL,
+                                 CSIDL_SYSTEMX86|CSIDL_FLAG_CREATE,
+                                 NULL,
+                                 0,
+                                 szPath)))
+    {
+        std::string ret(szPath);
+        return ret;
+    }
+    return std::string();
+}
+
 int main(int argc, char **argv) {
     vector<string> args(argv, argv + argc);
 
@@ -30,7 +46,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    ClientHandler handler("C:\\Windows\\SysWOW64\\cmd.exe");
+    ClientHandler handler(getDefaultCmdInterpreter() + "\\cmd.exe");
     PipeHandler in(PipeHandler::STDIN_PIPE);
     PipeHandler out(PipeHandler::STDOUT_PIPE);
     PipeHandler err(PipeHandler::STDERR_PIPE);
