@@ -6,7 +6,6 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
         case DLL_PROCESS_ATTACH:
         {
             char tmp[1024];
-            LPTSTR str;
             DWORD dwProcessId = ::GetCurrentProcessId();
             DWORD dwWritten;
             HANDLE hStdin, hStdout; 
