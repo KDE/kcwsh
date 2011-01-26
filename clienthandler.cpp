@@ -23,7 +23,8 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     if(_stdin) siWow.hStdInput = _stdin;
     if(_stdout) siWow.hStdOutput = _stdout;
     if(_stderr) siWow.hStdError = _stderr;
-//    siWow.dwFlags       = STARTF_USESHOWWINDOW;
+    siWow.dwFlags       = STARTF_USESTDHANDLES;
+//    siWow.dwFlags       |= STARTF_USESHOWWINDOW;
 //    siWow.wShowWindow   = SW_HIDE;
     
 
@@ -32,7 +33,7 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
             const_cast<TCHAR*>(m_procName.c_str()),
             NULL,
             NULL,
-            FALSE,
+            TRUE,
             0,
             NULL,
             NULL,
