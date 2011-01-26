@@ -30,3 +30,7 @@ target_link_libraries(kcwshtest ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 if(GUIAPP)
     target_link_libraries(kcwshtest ${QT_QTMAIN_LIBRARY})
 endif(GUIAPP)
+
+install(TARGETS kcwshtest RUNTIME DESTINATION bin
+                          LIBRARY DESTINATION lib
+                          ARCHIVE DESTINATION lib)
