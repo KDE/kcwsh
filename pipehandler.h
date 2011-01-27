@@ -1,5 +1,5 @@
-#ifndef PIPEHANDLER_H
-#define PIPEHANDLER_H
+#ifndef pipehandler_h
+#define pipehandler_h
 
 #include <windows.h>
 
@@ -20,4 +20,4 @@ class PipeHandler {
         HANDLE m_read;
         HANDLE m_write;
 };
-#endif /* PIPEHANDLER_H */
+#endif /* pipehandler_h */
