@@ -1,10 +1,42 @@
+#include <iostream>
+
 #include "clienthandler.h"
 
-ClientHandler::ClientHandler( std::string procname ) : m_procName( procname ) {
+ClientHandler::ClientHandler( std::string procname )
+    : m_procName( procname ),
+      m_monitorThreadExitEvent( ::CreateEvent(NULL, FALSE, FALSE, NULL) ) {
 }
 
-std::string GetModulePath(HMODULE hModule)
-{
+ClientHandler::~ClientHandler() {
+    std::cout << "exiting clienthandler!" << std::endl;
+    OutputDebugString("exiting clienthandler!");
+    cleanMonitor();
+}
+
+DWORD WINAPI ClientHandler::monitorThreadStatic(LPVOID lpParameter) {
+    ClientHandler* ch = reinterpret_cast<ClientHandler*>(lpParameter);
+    return ch->monitor();
+}
+
+DWORD ClientHandler::monitor() {
+    HANDLE arrWaitHandles[] = { m_procInfo.hProcess, m_monitorThreadExitEvent };
+    while (::WaitForMultipleObjects(sizeof(arrWaitHandles)/sizeof(arrWaitHandles[0]), arrWaitHandles, FALSE, INFINITE) > WAIT_OBJECT_0 + 1)
+    {
+    }
+    return 0;
+}
+
+HANDLE ClientHandler::childProcess() {
+    return m_procInfo.hProcess;
+}
+
+bool ClientHandler::stop() {
+    ::SetEvent(m_monitorThreadExitEvent);
+    ::WaitForSingleObject(m_monitorThread, 1000);
+    return true;
+}
+
+std::string ClientHandler::getModulePath(HMODULE hModule) {
     TCHAR szModulePath[MAX_PATH+1];
     ::ZeroMemory(szModulePath, (MAX_PATH+1));
 
@@ -13,6 +45,23 @@ std::string GetModulePath(HMODULE hModule)
     std::string strPath(szModulePath);
 
     return strPath.substr(0, strPath.rfind('\\'));
+}
+
+DWORD ClientHandler::createMonitor() {
+    DWORD dwThreadId = 0;
+    m_monitorThread = ::CreateThread( NULL,
+                                      0, 
+                                      monitorThreadStatic, 
+                                      reinterpret_cast<void*>(this), 
+                                      0, 
+                                      &dwThreadId
+                                    );
+    return dwThreadId;
+}
+
+void ClientHandler::cleanMonitor() {
+    ::WaitForSingleObject(m_monitorThread, 10000);
+    ::CloseHandle(m_monitorThread);
 }
 
 bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
@@ -24,6 +73,7 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     if(_stdout) siWow.hStdOutput = _stdout;
     if(_stderr) siWow.hStdError = _stderr;
     siWow.dwFlags       = STARTF_USESTDHANDLES;
+    DWORD dwStartupFlags = CREATE_SUSPENDED;
 //    siWow.dwFlags       |= STARTF_USESHOWWINDOW;
 //    siWow.wShowWindow   = SW_HIDE;
     
@@ -34,7 +84,7 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
             NULL,
             NULL,
             TRUE,
-            0,
+            dwStartupFlags,
             NULL,
             NULL,
             &siWow,
@@ -42,12 +92,16 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     {
         return false;
     }
+
+	if (!inject()) return false;
+
+	::ResumeThread(m_procInfo.hThread);
     return true;
 }
 
 bool ClientHandler::inject() {
     // allocate memory for parameter in the remote process
-    std::string      strHookDllPath(GetModulePath(NULL));
+    std::string      strHookDllPath(getModulePath(NULL));
 
     CONTEXT     context;
 
@@ -100,6 +154,6 @@ bool ClientHandler::inject() {
     context.Eip = (UINT_PTR)mem;
     SetThreadContext(m_procInfo.hThread, &context);
 
-    DWORD dwExitCode = WaitForSingleObject(m_procInfo.hProcess, INFINITE); 
+//    DWORD dwExitCode = WaitForSingleObject(m_procInfo.hProcess, INFINITE); 
     return true;
 }
