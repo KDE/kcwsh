@@ -40,11 +40,11 @@ SharedMemory<T>::SharedMemory(const std::string& strName, DWORD dwSize, bool bCr
 {
     if (bCreate)
     {
-        Create(strName, dwSize, syncObjects);
+        create(strName, dwSize);
     }
     else
     {
-        Open(strName, syncObjects);
+        open(strName);
     }
 }
 
