@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <windows.h>
 
+#include "sharedmemory.h"
+
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved */ ) {
     switch(dwReason) {
         case DLL_PROCESS_ATTACH:
@@ -8,11 +10,12 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
             char tmp[1024];
             DWORD dwProcessId = ::GetCurrentProcessId();
             DWORD dwWritten;
-            HANDLE hStdin, hStdout; 
-            BOOL bSuccess; 
-
-            hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
-            hStdin = GetStdHandle(STD_INPUT_HANDLE); 
+            HANDLE hStdin, hStdout;
+            BOOL bSuccess;
+            SharedMemory<int> m_test;
+            
+            hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+            hStdin = GetStdHandle(STD_INPUT_HANDLE);
             if( hStdout ) {
                 bSuccess = WriteFile(hStdout, "bla\n", 3, &dwWritten, NULL);
             } else {
@@ -20,7 +23,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
                 DWORD dw = GetLastError(); 
 
                 FormatMessage(
-                    FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+                    FORMAT_MESSAGE_ALLOCATE_BUFFER |
                     FORMAT_MESSAGE_FROM_SYSTEM |
                     FORMAT_MESSAGE_IGNORE_INSERTS,
                     NULL,
@@ -30,7 +33,10 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
                     0, NULL );
                 OutputDebugString((LPCTSTR)lpMsgBuf);
             }
-            sprintf(tmp, "running in process with id: %i", dwProcessId);
+            sprintf(tmp, "kcwsh-%x", dwProcessId);
+            m_test.open(tmp);
+            
+            sprintf(tmp, "running in process with id: %i %i", dwProcessId, *m_test);
             OutputDebugString(tmp);
             break;
         }

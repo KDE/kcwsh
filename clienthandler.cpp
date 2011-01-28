@@ -66,6 +66,8 @@ void ClientHandler::cleanMonitor() {
 
 bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     STARTUPINFO siWow;
+    char tmp[1024];
+
     ::ZeroMemory(&siWow, sizeof(STARTUPINFO));
 
     siWow.cb            = sizeof(STARTUPINFO);
@@ -76,7 +78,6 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     DWORD dwStartupFlags = CREATE_SUSPENDED;
 //    siWow.dwFlags       |= STARTF_USESHOWWINDOW;
 //    siWow.wShowWindow   = SW_HIDE;
-    
 
     if (!::CreateProcess(
             NULL,
@@ -92,6 +93,9 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     {
         return false;
     }
+    sprintf(tmp, "kcwsh-%x", m_procInfo.dwProcessId);
+    m_test.create(tmp, 1);
+    *m_test = 1234;
 
 	if (!inject()) return false;
 

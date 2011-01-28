@@ -45,12 +45,21 @@ DWORD ReadFromPipe(HANDLE childStdIn, HANDLE waitHandle)
 {
    DWORD dwRead, dwWritten, ret = 0;
    CHAR chBuf[BUFSIZE];
+   char tmp[1024];
    BOOL bSuccess = FALSE;
    HANDLE hParentStdIn      = GetStdHandle(STD_INPUT_HANDLE);
 
     for (;;)
     {
         bSuccess = ReadFile(hParentStdIn, chBuf, BUFSIZE, &dwRead, NULL);
+        sprintf(tmp, "read string: ");
+        for(unsigned i = 0; i < dwRead; i++) {
+            sprintf(tmp, "%s %i", tmp, chBuf[i]);
+            if(chBuf[i] == 0x1b) {
+                OutputDebugString("found an escape sequence!");
+            }
+        }
+        OutputDebugString(tmp);
         if(!bSuccess) {
             cout << "no success reading from stdin" << endl;
             break;
