@@ -2,6 +2,7 @@
 #define sharedmemory_h
 
 #include <iostream>
+#include <cstdio>
 #include <windows.h>
 
 template<typename T>
