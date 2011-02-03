@@ -4,7 +4,11 @@ cmake_minimum_required(VERSION 2.8)
 
 option(BUILD_GUI_TEST "build a gui app for testing purposes" ON)
 
-find_package(QT4)
+# required to check whether to build the kcwshtest
+find_package(Qt4)
+
+# this is my package I am allowed to do what I want!
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 set(kcwsh_SRCS
     clienthandler.cpp
