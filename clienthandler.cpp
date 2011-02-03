@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "clienthandler.h"
+#include "sharedmemory.h"
 
 ClientHandler::ClientHandler( std::string procname )
     : m_procName( procname ),
@@ -93,7 +94,7 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     {
         return false;
     }
-    sprintf(tmp, "kcwsh-%x", m_procInfo.dwProcessId);
+    sprintf(tmp, "kcwsh-%x-%x", m_procInfo.dwProcessId, ::GetCurrentProcessId());
     m_test.create(tmp, 1);
     *m_test = 1234;
 
