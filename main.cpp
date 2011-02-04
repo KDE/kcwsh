@@ -165,15 +165,15 @@ int main(int argc, char **argv) {
 
     ClientHandler handler(getDefaultCmdInterpreter() + "\\cmd.exe");
     PipeHandler in(PipeHandler::STDIN_PIPE);
-    PipeHandler out(PipeHandler::STDOUT_PIPE);
+//    PipeHandler out(PipeHandler::STDOUT_PIPE);
 /*    PipeHandler err(PipeHandler::STDERR_PIPE);*/
     
-    cout << "Starting process: " << ((handler.start(in.readHandle(), out.writeHandle(), GetStdHandle(STD_ERROR_HANDLE))) ? "succeeded" : "failed") << endl;
+    cout << "Starting process: " << ((handler.start(in.readHandle(), GetStdHandle(STD_OUTPUT_HANDLE), GetStdHandle(STD_ERROR_HANDLE))) ? "succeeded" : "failed") << endl;
     handler.createMonitor();
     childStdIn = in.writeHandle();
     app.addCallback(GetStdHandle(STD_INPUT_HANDLE), &transferStdIn);
-    app.addCallback(out.readHandle(), &transferStdOut);
-    app.addCallback(handler.childProcess(), &KcwApp::quit);
+//    app.addCallback(out.readHandle(), &transferStdOut);
+    app.addCallback(handler.childProcess());
     
     app.exec();
     cout << "kcwsh quit" << endl;
