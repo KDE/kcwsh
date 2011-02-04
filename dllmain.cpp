@@ -2,18 +2,19 @@
 #include <windows.h>
 
 #include "sharedmemory.h"
+#include "serverhandler.h"
+
+static ServerHandler srv;
 
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved */ ) {
     switch(dwReason) {
         case DLL_PROCESS_ATTACH:
         {
-            char tmp[1024];
-            DWORD dwProcessId = ::GetCurrentProcessId();
             DWORD dwWritten;
             HANDLE hStdin, hStdout;
             BOOL bSuccess;
-            SharedMemory<int> m_test;
             
+            srv.connect();
             hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
             hStdin = GetStdHandle(STD_INPUT_HANDLE);
             if( hStdout ) {
@@ -33,13 +34,12 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
                     0, NULL );
                 OutputDebugString((LPCTSTR)lpMsgBuf);
             }
-            sprintf(tmp, "kcwsh-%x", dwProcessId);
-            m_test.open(tmp);
-            
-            sprintf(tmp, "running in process with id: %i %i", dwProcessId, *m_test);
-            OutputDebugString(tmp);
             break;
         }
+        case DLL_PROCESS_DETACH:
+
+            srv.disconnect();
+            break;
     };
     return TRUE;
 }

@@ -94,7 +94,7 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     {
         return false;
     }
-    sprintf(tmp, "kcwsh-%x-%x", m_procInfo.dwProcessId, ::GetCurrentProcessId());
+    sprintf(tmp, "kcwsh-%x", m_procInfo.dwProcessId);
     m_test.create(tmp, 1);
     *m_test = 1234;
 

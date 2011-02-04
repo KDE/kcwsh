@@ -108,6 +108,7 @@ void SharedMemory<T>::open(const std::string& strName)
 {
     m_name   = strName;
 
+    OutputDebugString((std::string("key: ").append(m_name)).c_str());
     m_sharedMemHandle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, m_name.c_str());
 
     if (!m_sharedMemHandle || (m_sharedMemHandle == INVALID_HANDLE_VALUE)) {

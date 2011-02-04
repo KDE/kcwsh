@@ -13,11 +13,13 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 set(kcwsh_SRCS
     clienthandler.cpp
     pipehandler.cpp
+    kcwapp.cpp
     main.cpp
 )
 add_executable(kcwsh ${kcwsh_SRCS})
 
 set(kcwshhook_SRCS
+    serverhandler.cpp
     dllmain.cpp
 )
 add_library(kcwshhook MODULE ${kcwshhook_SRCS})
