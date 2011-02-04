@@ -14,12 +14,14 @@ set(kcwsh_SRCS
     clienthandler.cpp
     pipehandler.cpp
     kcwapp.cpp
+    kcweventloop.cpp
     main.cpp
 )
 add_executable(kcwsh ${kcwsh_SRCS})
 
 set(kcwshhook_SRCS
     serverhandler.cpp
+    kcweventloop.cpp
     dllmain.cpp
 )
 add_library(kcwshhook MODULE ${kcwshhook_SRCS})
