@@ -15,6 +15,7 @@ ClientHandler::~ClientHandler() {
 }
 
 DWORD WINAPI ClientHandler::monitorThreadStatic(LPVOID lpParameter) {
+    DWORD ret;
     ClientHandler* ch = reinterpret_cast<ClientHandler*>(lpParameter);
     return ch->monitor();
 }
@@ -29,6 +30,10 @@ DWORD ClientHandler::monitor() {
 
 HANDLE ClientHandler::childProcess() {
     return m_procInfo.hProcess;
+}
+
+HANDLE ClientHandler::childMonitor() {
+    return m_monitorThreadExitEvent;
 }
 
 bool ClientHandler::stop() {
@@ -94,14 +99,19 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     {
         return false;
     }
-    sprintf(tmp, "kcwsh-%x", m_procInfo.dwProcessId);
-    m_test.create(tmp, 1);
-    *m_test = 1234;
+    sprintf(tmp, "kcwsh-sharedExitEvent-%x", m_procInfo.dwProcessId);
+    m_sharedExitEvent.create(std::string(tmp), 1);
+    *m_sharedExitEvent = m_monitorThreadExitEvent;
+
 
 	if (!inject()) return false;
 
 	::ResumeThread(m_procInfo.hThread);
     return true;
+}
+
+DWORD ClientHandler::processId() const {
+    return m_procInfo.dwProcessId;
 }
 
 bool ClientHandler::inject() {

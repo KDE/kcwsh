@@ -1,13 +1,12 @@
 #ifndef sharedmemory_h
 #define sharedmemory_h
 
-#include <iostream>
+#include <string>
 #include <cstdio>
 #include <windows.h>
 
 template<typename T>
-class SharedMemory
-{
+class SharedMemory {
     public:
 
         SharedMemory();
@@ -16,30 +15,31 @@ class SharedMemory
         inline void create(const std::string& strName, DWORD dwSize);
         inline void open(const std::string& strName);
         inline void errorExit();
+        inline void notify();
 
         inline T& operator[](size_t index) const;
         inline T* operator->() const;
         inline T& operator*() const;
         inline SharedMemory& operator=(const T& val);
+        HANDLE notificationEvent() const;
 
     private:
         std::string m_name;
         DWORD       m_size;
         HANDLE      m_sharedMemHandle;
         T*          m_sharedMem;
+        HANDLE      m_notificationEvent;
 };
 
 template<typename T>
 SharedMemory<T>::SharedMemory()
-: m_name("")
-{
+: m_name("") {
 }
 
 
 template<typename T>
 SharedMemory<T>::SharedMemory(const std::string& strName, DWORD dwSize, bool bCreate)
-: m_name(strName)
-{
+: m_name(strName) {
     if (bCreate)
     {
         create(strName, dwSize);
@@ -51,8 +51,7 @@ SharedMemory<T>::SharedMemory(const std::string& strName, DWORD dwSize, bool bCr
 }
 
 template<typename T>
-void SharedMemory<T>::errorExit()
-{
+void SharedMemory<T>::errorExit() {
     char* lpMsgBuf = NULL;
     DWORD dw = GetLastError();
 
@@ -72,12 +71,14 @@ void SharedMemory<T>::errorExit()
 }
 
 template<typename T>
-void SharedMemory<T>::create(const std::string& strName, DWORD dwSize)
-{
+void SharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
     static SECURITY_ATTRIBUTES sa;
+    static SECURITY_ATTRIBUTES sa_event;
 
     m_name      = strName;
     m_size      = dwSize;
+    
+    m_notificationEvent = ::CreateEvent(&sa_event, FALSE, FALSE, (m_name + "_req_event").c_str());
 
     m_sharedMemHandle = ::CreateFileMapping(INVALID_HANDLE_VALUE,
                                             &sa,
@@ -98,17 +99,11 @@ void SharedMemory<T>::create(const std::string& strName, DWORD dwSize)
     ::ZeroMemory(m_sharedMem, m_size * sizeof(T));
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////
-
 template<typename T>
-void SharedMemory<T>::open(const std::string& strName)
-{
+void SharedMemory<T>::open(const std::string& strName) {
     m_name   = strName;
-
     OutputDebugString((std::string("key: ").append(m_name)).c_str());
+    m_notificationEvent = ::OpenEvent(EVENT_ALL_ACCESS, FALSE, (m_name + "_req_event").c_str());
     m_sharedMemHandle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, m_name.c_str());
 
     if (!m_sharedMemHandle || (m_sharedMemHandle == INVALID_HANDLE_VALUE)) {
@@ -123,28 +118,34 @@ void SharedMemory<T>::open(const std::string& strName)
 }
 
 template<typename T>
-T& SharedMemory<T>::operator[](size_t index) const
-{
+T& SharedMemory<T>::operator[](size_t index) const {
     return *(m_sharedMem + index);
 }
 
 template<typename T>
-T* SharedMemory<T>::operator->() const
-{
+T* SharedMemory<T>::operator->() const {
     return m_sharedMem;
 }
 
 template<typename T>
-T& SharedMemory<T>::operator*() const
-{
+T& SharedMemory<T>::operator*() const {
     return *m_sharedMem;
 }
 
 template<typename T>
-SharedMemory<T>& SharedMemory<T>::operator=(const T& val)
-{
+SharedMemory<T>& SharedMemory<T>::operator=(const T& val) {
     *m_sharedMem = val;
     return *this;
+}
+
+template<typename T>
+void SharedMemory<T>::notify() {
+    SetEvent(m_notificationEvent);
+}
+
+template<typename T>
+HANDLE SharedMemory<T>::notificationEvent() const {
+    return m_notificationEvent;
 }
 
 #endif /* sharedmemory_h */

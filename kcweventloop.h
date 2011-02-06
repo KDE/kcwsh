@@ -30,6 +30,11 @@ class KcwEventLoop {
         * quit the event loop
         */
         void quit();
+        
+        /**
+        * change the wait interval for each handle
+        */
+        void setRefreshInterval(int secs);
     private:
         std::vector<eventCallback> m_callbacks;
         std::vector<HANDLE> m_handles;

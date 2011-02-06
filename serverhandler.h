@@ -13,9 +13,9 @@ class ServerHandler : public KcwEventLoop {
     private:
         static DWORD WINAPI monitorThreadStatic(LPVOID lpParameter);
         DWORD monitorThread();
-
+        
         HANDLE m_thread;
-        SharedMemory<int> m_test;
+        SharedMemory<HANDLE> m_sharedExitEvent;
 };
 
 #endif /* serverhandler_h */

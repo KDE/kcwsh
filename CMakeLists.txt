@@ -21,10 +21,11 @@ add_executable(kcwsh ${kcwsh_SRCS})
 
 set(kcwshhook_SRCS
     serverhandler.cpp
+    remoteExec.cpp
     kcweventloop.cpp
     dllmain.cpp
 )
-add_library(kcwshhook MODULE ${kcwshhook_SRCS})
+add_library(kcwshhook SHARED ${kcwshhook_SRCS})
 
 install(TARGETS kcwsh kcwshhook RUNTIME DESTINATION bin
                                 LIBRARY DESTINATION lib

@@ -19,6 +19,8 @@ class ClientHandler {
         DWORD createMonitor();
         void cleanMonitor();
         HANDLE childProcess();
+        DWORD processId() const;
+        HANDLE childMonitor();
 
     private:
         static DWORD WINAPI monitorThreadStatic(LPVOID lpParameter);
@@ -27,7 +29,7 @@ class ClientHandler {
 
         PROCESS_INFORMATION m_procInfo;
         std::string m_procName;
-        SharedMemory<int> m_test;
+        SharedMemory<HANDLE> m_sharedExitEvent;
 
         HANDLE m_monitorThreadExitEvent;
         HANDLE m_monitorThread;

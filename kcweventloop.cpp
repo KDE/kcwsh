@@ -3,7 +3,7 @@
 HANDLE s_appEvent = ::CreateEvent(NULL, FALSE, FALSE, "KcwEventLoop");
 
 KcwEventLoop::KcwEventLoop(HANDLE eventHandle)
- :  m_refreshInterval(1) {
+ :  m_refreshInterval(10) {
     if(eventHandle == NULL) m_eventHandle = s_appEvent;
     else m_eventHandle = eventHandle;
 
@@ -18,6 +18,10 @@ void KcwEventLoop::addCallback(HANDLE hndl, eventCallback cllbck) {
 
 void KcwEventLoop::quit() {
     SetEvent(m_eventHandle);
+}
+
+void KcwEventLoop::setRefreshInterval(int secs) {
+    m_refreshInterval = secs;
 }
 
 int KcwEventLoop::exec() {
