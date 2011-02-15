@@ -15,6 +15,7 @@ set(kcwsh_SRCS
     pipehandler.cpp
     kcwapp.cpp
     kcweventloop.cpp
+    kcwthread.cpp
     main.cpp
 )
 add_executable(kcwsh ${kcwsh_SRCS})
@@ -23,6 +24,7 @@ set(kcwshhook_SRCS
     serverhandler.cpp
     remoteExec.cpp
     kcweventloop.cpp
+    kcwthread.cpp
     dllmain.cpp
 )
 add_library(kcwshhook SHARED ${kcwshhook_SRCS})
