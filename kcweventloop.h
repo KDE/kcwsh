@@ -24,12 +24,12 @@ class KcwEventLoop {
         /**
         * call this function to run the event loop and to get notified 
         */
-        int exec();
+        virtual int exec();
         
         /**
         * quit the event loop
         */
-        void quit();
+        virtual void quit();
         
         /**
         * change the wait interval for each handle
