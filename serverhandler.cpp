@@ -30,7 +30,6 @@ ServerHandler::ServerHandler()
 void ServerHandler::connect() {
     char tmp[1024];
     DWORD dwProcessId = ::GetCurrentProcessId();
-    DWORD dwThreadId = 0;
     
     sprintf(tmp, "running in process with id: %i", dwProcessId);
     OutputDebugString(tmp);
@@ -40,7 +39,7 @@ void ServerHandler::connect() {
 
     RemoteExec::openConnections();
     addCallback(RemoteExec::bufferSizeNotification(), &RemoteExec::bufferSizeCallback);
-    m_thread = ::CreateThread(NULL, 0, monitorThreadStatic, reinterpret_cast<void*>(this), 0, &dwThreadId);
+    m_thread = ::CreateThread(NULL, 0, monitorThreadStatic, reinterpret_cast<void*>(this), 0, NULL);
 }
 
 void ServerHandler::disconnect() {
