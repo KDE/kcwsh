@@ -14,6 +14,8 @@ class SharedMemory {
 
         inline void create(const std::string& strName, DWORD dwSize);
         inline void open(const std::string& strName);
+        inline int createEx(const std::string& strName, DWORD dwSize);
+        inline int openEx(const std::string& strName);
         inline void errorExit();
         inline void notify();
 
@@ -72,6 +74,13 @@ void SharedMemory<T>::errorExit() {
 
 template<typename T>
 void SharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
+    if(createEx(strName, dwSize) != 0) {
+        errorExit();
+    }
+}
+
+template<typename T>
+int SharedMemory<T>::createEx(const std::string& strName, DWORD dwSize) {
     static SECURITY_ATTRIBUTES sa;
     static SECURITY_ATTRIBUTES sa_event;
 
@@ -88,33 +97,50 @@ void SharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
                                             m_name.c_str());
 
     if(m_sharedMemHandle == NULL) {
-        errorExit();
+        return -1;
     }
 
     m_sharedMem = static_cast<T*>(::MapViewOfFile(m_sharedMemHandle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
     if(m_sharedMem == NULL) {
-        errorExit();
+        return -2;
     }
 
     ::ZeroMemory(m_sharedMem, m_size * sizeof(T));
+    return 0;
 }
 
 template<typename T>
 void SharedMemory<T>::open(const std::string& strName) {
+    int result = openEx(strName);
+    switch(result) {
+        case -1:
+            OutputDebugString("Error opening shared mem");
+            break;
+        case -2:
+            OutputDebugString("Error mapping shared mem");
+            break;
+        default:
+            break;
+    }
+}
+
+template<typename T>
+int SharedMemory<T>::openEx(const std::string& strName) {
     m_name   = strName;
     OutputDebugString((std::string("key: ").append(m_name)).c_str());
     m_notificationEvent = ::OpenEvent(EVENT_ALL_ACCESS, FALSE, (m_name + "_req_event").c_str());
     m_sharedMemHandle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, m_name.c_str());
 
     if (!m_sharedMemHandle || (m_sharedMemHandle == INVALID_HANDLE_VALUE)) {
-        OutputDebugString("Error opening shared mem");
+        return -1;
     }
 
     m_sharedMem = static_cast<T*>(::MapViewOfFile(m_sharedMemHandle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
 
     if (!m_sharedMem) {
-        OutputDebugString("Error mapping shared mem");
+        return -2;
     }
+    return 0;
 }
 
 template<typename T>
