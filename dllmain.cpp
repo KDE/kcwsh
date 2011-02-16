@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <windows.h>
 
-#include "sharedmemory.h"
+#include "kcwsharedmemory.h"
 #include "serverhandler.h"
 
 static ServerHandler srv;

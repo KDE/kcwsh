@@ -1,7 +1,7 @@
 #ifndef serverhandler_h
 #define serverhandler_h
 
-#include "sharedmemory.h"
+#include "kcwsharedmemory.h"
 #include "kcweventloop.h"
 
 class ServerHandler : public KcwEventLoop {

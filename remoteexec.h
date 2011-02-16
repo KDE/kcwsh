@@ -1,7 +1,7 @@
 #ifndef remoteexec_h
 #define remoteexec_h
 
-#include "sharedmemory.h"
+#include "kcwsharedmemory.h"
 
 class RemoteExec {
     public:

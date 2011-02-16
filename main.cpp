@@ -8,6 +8,7 @@
 
 #include "clienthandler.h"
 #include "pipehandler.h"
+#include "kcwsharedmemory.h"
 #include "kcwapp.h"
 
 #define BUFSIZE 4096

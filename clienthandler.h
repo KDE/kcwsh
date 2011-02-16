@@ -5,7 +5,7 @@
 
 #include <windows.h>
 
-#include "sharedmemory.h"
+#include "kcwsharedmemory.h"
 
 class ClientHandler {
     public:

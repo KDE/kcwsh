@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "clienthandler.h"
-#include "sharedmemory.h"
 
 ClientHandler::ClientHandler( std::string procname )
     : m_procName( procname ),
