@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <windows.h>
 
-#include "kcwsharedmemory.h"
 #include "serverhandler.h"
 
 static ServerHandler srv;
