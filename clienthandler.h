@@ -29,7 +29,7 @@ class ClientHandler {
 
         PROCESS_INFORMATION m_procInfo;
         std::string m_procName;
-        SharedMemory<HANDLE> m_sharedExitEvent;
+        KcwSharedMemory<HANDLE> m_sharedExitEvent;
 
         HANDLE m_monitorThreadExitEvent;
         HANDLE m_monitorThread;

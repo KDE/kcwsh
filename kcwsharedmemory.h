@@ -6,11 +6,11 @@
 #include <windows.h>
 
 template<typename T>
-class SharedMemory {
+class KcwSharedMemory {
     public:
 
-        SharedMemory();
-        SharedMemory(const std::string& strName, DWORD dwSize, bool bCreate = true);
+        KcwSharedMemory();
+        KcwSharedMemory(const std::string& strName, DWORD dwSize, bool bCreate = true);
 
         inline void create(const std::string& strName, DWORD dwSize);
         inline void open(const std::string& strName);
@@ -22,7 +22,7 @@ class SharedMemory {
         inline T& operator[](size_t index) const;
         inline T* operator->() const;
         inline T& operator*() const;
-        inline SharedMemory& operator=(const T& val);
+        inline KcwSharedMemory& operator=(const T& val);
         HANDLE notificationEvent() const;
 
     private:
@@ -34,13 +34,13 @@ class SharedMemory {
 };
 
 template<typename T>
-SharedMemory<T>::SharedMemory()
+KcwSharedMemory<T>::KcwSharedMemory()
 : m_name("") {
 }
 
 
 template<typename T>
-SharedMemory<T>::SharedMemory(const std::string& strName, DWORD dwSize, bool bCreate)
+KcwSharedMemory<T>::KcwSharedMemory(const std::string& strName, DWORD dwSize, bool bCreate)
 : m_name(strName) {
     if (bCreate)
     {
@@ -53,7 +53,7 @@ SharedMemory<T>::SharedMemory(const std::string& strName, DWORD dwSize, bool bCr
 }
 
 template<typename T>
-void SharedMemory<T>::errorExit() {
+void KcwSharedMemory<T>::errorExit() {
     char* lpMsgBuf = NULL;
     DWORD dw = GetLastError();
 
@@ -73,14 +73,14 @@ void SharedMemory<T>::errorExit() {
 }
 
 template<typename T>
-void SharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
+void KcwSharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
     if(createEx(strName, dwSize) != 0) {
         errorExit();
     }
 }
 
 template<typename T>
-int SharedMemory<T>::createEx(const std::string& strName, DWORD dwSize) {
+int KcwSharedMemory<T>::createEx(const std::string& strName, DWORD dwSize) {
     static SECURITY_ATTRIBUTES sa;
     static SECURITY_ATTRIBUTES sa_event;
 
@@ -110,7 +110,7 @@ int SharedMemory<T>::createEx(const std::string& strName, DWORD dwSize) {
 }
 
 template<typename T>
-void SharedMemory<T>::open(const std::string& strName) {
+void KcwSharedMemory<T>::open(const std::string& strName) {
     int result = openEx(strName);
     switch(result) {
         case -1:
@@ -125,7 +125,7 @@ void SharedMemory<T>::open(const std::string& strName) {
 }
 
 template<typename T>
-int SharedMemory<T>::openEx(const std::string& strName) {
+int KcwSharedMemory<T>::openEx(const std::string& strName) {
     m_name   = strName;
     OutputDebugString((std::string("key: ").append(m_name)).c_str());
     m_notificationEvent = ::OpenEvent(EVENT_ALL_ACCESS, FALSE, (m_name + "_req_event").c_str());
@@ -144,33 +144,33 @@ int SharedMemory<T>::openEx(const std::string& strName) {
 }
 
 template<typename T>
-T& SharedMemory<T>::operator[](size_t index) const {
+T& KcwSharedMemory<T>::operator[](size_t index) const {
     return *(m_sharedMem + index);
 }
 
 template<typename T>
-T* SharedMemory<T>::operator->() const {
+T* KcwSharedMemory<T>::operator->() const {
     return m_sharedMem;
 }
 
 template<typename T>
-T& SharedMemory<T>::operator*() const {
+T& KcwSharedMemory<T>::operator*() const {
     return *m_sharedMem;
 }
 
 template<typename T>
-SharedMemory<T>& SharedMemory<T>::operator=(const T& val) {
+KcwSharedMemory<T>& KcwSharedMemory<T>::operator=(const T& val) {
     *m_sharedMem = val;
     return *this;
 }
 
 template<typename T>
-void SharedMemory<T>::notify() {
+void KcwSharedMemory<T>::notify() {
     SetEvent(m_notificationEvent);
 }
 
 template<typename T>
-HANDLE SharedMemory<T>::notificationEvent() const {
+HANDLE KcwSharedMemory<T>::notificationEvent() const {
     return m_notificationEvent;
 }
 

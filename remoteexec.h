@@ -15,7 +15,7 @@ class RemoteExec {
         // getters for the notification events
         static HANDLE bufferSizeNotification();
     private:
-        static SharedMemory<int> m_bufferSize;
+        static KcwSharedMemory<int> m_bufferSize;
 };
 
 #endif /* remoteexec_h */

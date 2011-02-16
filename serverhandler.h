@@ -15,7 +15,7 @@ class ServerHandler : public KcwEventLoop {
         DWORD monitorThread();
         
         HANDLE m_thread;
-        SharedMemory<HANDLE> m_sharedExitEvent;
+        KcwSharedMemory<HANDLE> m_sharedExitEvent;
 };
 
 #endif /* serverhandler_h */

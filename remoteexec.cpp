@@ -1,6 +1,6 @@
 #include "remoteexec.h"
 
-SharedMemory<int> RemoteExec::m_bufferSize;
+KcwSharedMemory<int> RemoteExec::m_bufferSize;
 
 RemoteExec::RemoteExec() {
 }

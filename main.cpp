@@ -20,7 +20,7 @@ static HANDLE childStdIn = NULL;
 static HANDLE childStdOut = NULL;
 static HANDLE parentStdIn = GetStdHandle(STD_INPUT_HANDLE);
 static bool first_run = false;
-static SharedMemory<int> bufferSize;
+static KcwSharedMemory<int> bufferSize;
 
 void usage() {
     cout << "kcwsh is a wrapper Shell for cmd.exe which understands ansi " << endl \
