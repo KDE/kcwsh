@@ -3,42 +3,18 @@
 #include "clienthandler.h"
 
 ClientHandler::ClientHandler( std::string procname )
-    : m_procName( procname ),
-      m_monitorThreadExitEvent( ::CreateEvent(NULL, FALSE, FALSE, NULL) ) {
+    : m_procName( procname ) {
+
 }
 
 ClientHandler::~ClientHandler() {
+    quit();
     std::cout << "exiting clienthandler!" << std::endl;
     OutputDebugString("exiting clienthandler!");
-    cleanMonitor();
-}
-
-DWORD WINAPI ClientHandler::monitorThreadStatic(LPVOID lpParameter) {
-    DWORD ret;
-    ClientHandler* ch = reinterpret_cast<ClientHandler*>(lpParameter);
-    return ch->monitor();
-}
-
-DWORD ClientHandler::monitor() {
-    HANDLE arrWaitHandles[] = { m_procInfo.hProcess, m_monitorThreadExitEvent };
-    while (::WaitForMultipleObjects(sizeof(arrWaitHandles)/sizeof(arrWaitHandles[0]), arrWaitHandles, FALSE, INFINITE) > WAIT_OBJECT_0 + 1)
-    {
-    }
-    return 0;
 }
 
 HANDLE ClientHandler::childProcess() {
     return m_procInfo.hProcess;
-}
-
-HANDLE ClientHandler::childMonitor() {
-    return m_monitorThreadExitEvent;
-}
-
-bool ClientHandler::stop() {
-    ::SetEvent(m_monitorThreadExitEvent);
-    ::WaitForSingleObject(m_monitorThread, 1000);
-    return true;
 }
 
 std::string ClientHandler::getModulePath(HMODULE hModule) {
@@ -50,23 +26,6 @@ std::string ClientHandler::getModulePath(HMODULE hModule) {
     std::string strPath(szModulePath);
 
     return strPath.substr(0, strPath.rfind('\\'));
-}
-
-DWORD ClientHandler::createMonitor() {
-    DWORD dwThreadId = 0;
-    m_monitorThread = ::CreateThread( NULL,
-                                      0, 
-                                      monitorThreadStatic, 
-                                      reinterpret_cast<void*>(this), 
-                                      0, 
-                                      &dwThreadId
-                                    );
-    return dwThreadId;
-}
-
-void ClientHandler::cleanMonitor() {
-    ::WaitForSingleObject(m_monitorThread, 10000);
-    ::CloseHandle(m_monitorThread);
 }
 
 bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
@@ -81,6 +40,7 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
     if(_stderr) siWow.hStdError = _stderr;
     siWow.dwFlags       = STARTF_USESTDHANDLES;
     DWORD dwStartupFlags = CREATE_SUSPENDED;
+//	| DETACHED_PROCESS; // the detached process won't work
 //    siWow.dwFlags       |= STARTF_USESHOWWINDOW;
 //    siWow.wShowWindow   = SW_HIDE;
 
@@ -96,21 +56,48 @@ bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
             &siWow,
             &m_procInfo))
     {
+		OutputDebugString("failed to create process!");
         return false;
     }
-    sprintf(tmp, "kcwsh-sharedExitEvent-%x", m_procInfo.dwProcessId);
-    m_sharedExitEvent.create(std::string(tmp), 1);
-    *m_sharedExitEvent = m_monitorThreadExitEvent;
+    sprintf(tmp, "kcwsh-exitEvent-%x", m_procInfo.dwProcessId);
+    if(m_sharedExitEvent.create(std::string(tmp), 1) != 0) {
+        m_sharedExitEvent.errorExit();
+    };
 
+    sprintf(tmp, "kcwsh-contentCheck-%x", m_procInfo.dwProcessId);
+    if(m_contentCheck.create(std::string(tmp), 1) != 0) {
+        m_contentCheck.errorExit();
+    };
 
-	if (!inject()) return false;
+    // before we can use the handle in the client process, we need to duplicate it
+    ::DuplicateHandle(  GetCurrentProcess(),
+                        exitEvent(),
+                        m_procInfo.hProcess,
+                        &(*m_sharedExitEvent),
+                        0,
+                        FALSE,
+                        DUPLICATE_SAME_ACCESS);
 
-	::ResumeThread(m_procInfo.hThread);
+    addCallback(m_procInfo.hProcess);
+
+    if (!inject()) {
+		OutputDebugString("failed to inject dll!");
+		return false;
+	}
+
+    setRefreshInterval(10);
+    KcwThread::start();
+    ::ResumeThread(m_procInfo.hThread);
+	// test notification stuff:
+	m_contentCheck.notify();
     return true;
 }
 
 DWORD ClientHandler::processId() const {
     return m_procInfo.dwProcessId;
+}
+HANDLE ClientHandler::contentCheckNotifyEvent() {
+	return m_contentCheck.notificationEvent();
 }
 
 bool ClientHandler::inject() {
@@ -167,7 +154,5 @@ bool ClientHandler::inject() {
     FlushInstructionCache(m_procInfo.hProcess, mem, memLen);
     context.Eip = (UINT_PTR)mem;
     SetThreadContext(m_procInfo.hThread, &context);
-
-//    DWORD dwExitCode = WaitForSingleObject(m_procInfo.hProcess, INFINITE); 
     return true;
 }

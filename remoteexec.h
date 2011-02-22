@@ -10,12 +10,17 @@ class RemoteExec {
         static void openConnections();
         
         // all the static callback functions
-        static void bufferSizeCallback();
+        static void bufferSizeCallback(void *obj);
+        static void bufferContentCheck(void *obj);
         
         // getters for the notification events
         static HANDLE bufferSizeNotification();
+		static HANDLE contentNotification();
+        static HANDLE exitEvent();
     private:
-        static KcwSharedMemory<int> m_bufferSize;
+        static KcwSharedMemory<int> s_bufferSize;
+        static KcwSharedMemory<HANDLE> s_exitEvent;
+        static KcwSharedMemory<HANDLE> s_contentCheck;
 };
 
 #endif /* remoteexec_h */

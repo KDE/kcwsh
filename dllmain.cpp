@@ -13,9 +13,10 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
             break;
         }
         case DLL_PROCESS_DETACH:
-
+		{
             srv.disconnect();
             break;
+		}
     };
     return TRUE;
 }

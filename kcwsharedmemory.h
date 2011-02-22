@@ -12,10 +12,8 @@ class KcwSharedMemory {
         KcwSharedMemory();
         KcwSharedMemory(const std::string& strName, DWORD dwSize, bool bCreate = true);
 
-        inline void create(const std::string& strName, DWORD dwSize);
-        inline void open(const std::string& strName);
-        inline int createEx(const std::string& strName, DWORD dwSize);
-        inline int openEx(const std::string& strName);
+        inline int create(const std::string& strName, DWORD dwSize);
+        inline int open(const std::string& strName);
         inline void errorExit();
         inline void notify();
 
@@ -35,13 +33,15 @@ class KcwSharedMemory {
 
 template<typename T>
 KcwSharedMemory<T>::KcwSharedMemory()
-: m_name("") {
+: m_name(""),
+  m_sharedMemHandle(NULL) {
 }
 
 
 template<typename T>
 KcwSharedMemory<T>::KcwSharedMemory(const std::string& strName, DWORD dwSize, bool bCreate)
-: m_name(strName) {
+: m_name(strName),
+  m_sharedMemHandle(NULL) {
     if (bCreate)
     {
         create(strName, dwSize);
@@ -73,20 +73,16 @@ void KcwSharedMemory<T>::errorExit() {
 }
 
 template<typename T>
-void KcwSharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
-    if(createEx(strName, dwSize) != 0) {
-        errorExit();
-    }
-}
-
-template<typename T>
-int KcwSharedMemory<T>::createEx(const std::string& strName, DWORD dwSize) {
+int KcwSharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
     static SECURITY_ATTRIBUTES sa;
     static SECURITY_ATTRIBUTES sa_event;
 
     m_name      = strName;
     m_size      = dwSize;
-    
+
+    // if the file handle already is set, expect it to be set correctly and don't reopen it
+    if(m_sharedMemHandle != NULL) return 0;
+
     m_notificationEvent = ::CreateEvent(&sa_event, FALSE, FALSE, (m_name + "_req_event").c_str());
 
     m_sharedMemHandle = ::CreateFileMapping(INVALID_HANDLE_VALUE,
@@ -110,24 +106,14 @@ int KcwSharedMemory<T>::createEx(const std::string& strName, DWORD dwSize) {
 }
 
 template<typename T>
-void KcwSharedMemory<T>::open(const std::string& strName) {
-    int result = openEx(strName);
-    switch(result) {
-        case -1:
-            OutputDebugString("Error opening shared mem");
-            break;
-        case -2:
-            OutputDebugString("Error mapping shared mem");
-            break;
-        default:
-            break;
-    }
-}
-
-template<typename T>
-int KcwSharedMemory<T>::openEx(const std::string& strName) {
+int KcwSharedMemory<T>::open(const std::string& strName) {
     m_name   = strName;
-    OutputDebugString((std::string("key: ").append(m_name)).c_str());
+
+    // if the file handle already is set, expect it to be set correctly and don't reopen it
+    if(m_sharedMemHandle != NULL) return 0;
+
+//    OutputDebugString((std::string("key: ").append(m_name)).c_str());
+
     m_notificationEvent = ::OpenEvent(EVENT_ALL_ACCESS, FALSE, (m_name + "_req_event").c_str());
     m_sharedMemHandle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, m_name.c_str());
 

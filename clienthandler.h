@@ -6,33 +6,27 @@
 #include <windows.h>
 
 #include "kcwsharedmemory.h"
+#include "kcwthread.h"
 
-class ClientHandler {
+class ClientHandler : public KcwThread {
     public:
         ClientHandler(std::string procname);
         ~ClientHandler();
-        
-        bool start(HANDLE _stdin = 0, HANDLE _stdout = 0, HANDLE _stderr = 0);
-        bool inject();
-        bool stop();
 
-        DWORD createMonitor();
-        void cleanMonitor();
+        bool start(HANDLE _stdin = 0, HANDLE _stdout = 0, HANDLE _stderr = 0);
+
         HANDLE childProcess();
+		HANDLE contentCheckNotifyEvent();
         DWORD processId() const;
-        HANDLE childMonitor();
 
     private:
-        static DWORD WINAPI monitorThreadStatic(LPVOID lpParameter);
-        DWORD monitor();
+        bool inject();
         std::string getModulePath(HMODULE hModule);
 
         PROCESS_INFORMATION m_procInfo;
         std::string m_procName;
         KcwSharedMemory<HANDLE> m_sharedExitEvent;
-
-        HANDLE m_monitorThreadExitEvent;
-        HANDLE m_monitorThread;
+        KcwSharedMemory<HANDLE> m_contentCheck;
 };
 
 #endif /* clienthandler_h */

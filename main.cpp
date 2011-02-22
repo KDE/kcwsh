@@ -15,7 +15,7 @@
 
 using namespace std;
 
-bool g_debug = false;
+static bool g_debug = false;
 static HANDLE childStdIn = NULL;
 static HANDLE childStdOut = NULL;
 static HANDLE parentStdIn = GetStdHandle(STD_INPUT_HANDLE);
@@ -45,92 +45,6 @@ std::string getDefaultCmdInterpreter() {
         return ret;
     }
     return std::string();
-}
-
-void parseEscapeSequence(char *esc, int length) {
-    char tmp[BUFSIZE], d1;
-    if(esc[0] == '[') {
-        sprintf(tmp, "got escape sequence with suffix '%c' data: '%s'", esc[length - 1], &esc[1]);
-        OutputDebugString(tmp);
-        switch(esc[length - 1]) {
-            case 't':   {   /* setting of the buffer size */
-                            std::istringstream i(&esc[1]);
-                            if( i >> bufferSize[0] >> d1 >> bufferSize[1] ){
-                                bufferSize.notify();
-                            }
-                            break;
-                        }
-            default:    {
-                        };
-        };
-    }
-}
-
-// this needs to be moved into its own thread, otherwise it blocks to much
-void transferStdIn() {
-    DWORD dwRead = 0, dwWritten, dwResult, inputEvents, ret = 0;
-    CHAR chBuf[BUFSIZE];
-    char tmp[1024];
-    BOOL bSuccess = FALSE;
-    static char buffer[BUFSIZE];
-    static char bufLength = 0;
-    static int beginEsc = 0;
-    static bool inEscapeSeq = false;
-
-    dwResult = WaitForSingleObject(parentStdIn, 0);
-    
-    if(dwResult == WAIT_OBJECT_0) {
-        bSuccess = ReadFile(parentStdIn, chBuf, BUFSIZE, &dwRead, NULL);
-        sprintf(tmp, "read string: ");
-        for(unsigned i = 0; i < dwRead; i++) {
-            buffer[bufLength + i] = chBuf[i];
-            sprintf(tmp, "%s %i", tmp, chBuf[i]);
-        }
-        bufLength += dwRead;
-        OutputDebugString(tmp);
-        if(!bSuccess) {
-            cout << "no success reading from stdin" << endl;
-            return;
-        }
-
-        for(int j = 0; j < bufLength; j++) {
-            // found the begin of an escape sequence
-            if(!inEscapeSeq && (buffer[j] == 0x1b || 
-               (g_debug && j > 1 && buffer[j - 2] == '\\' && buffer[j - 1] == '\\' && buffer[j] == 'e'))) {
-                beginEsc = j + 1;
-//                OutputDebugString("inEscapeSequence");
-                inEscapeSeq = true;
-            }
-            
-            // found the end of an escape sequence
-            if(inEscapeSeq && buffer[j] == 13) {
-                buffer[j] = 0;
-                parseEscapeSequence(&buffer[beginEsc], j - beginEsc);
-//                OutputDebugString("end inEscapeSequence");
-                inEscapeSeq = false;
-                if(buffer[beginEsc - 1] != 0x1b) {
-                    bufLength = beginEsc - 3;
-                } else {
-                    bufLength = beginEsc - 1;
-                }
-
-                buffer[bufLength] = 0;
-                return;
-            }
-        }
-        
-        if(!inEscapeSeq) {
-            if(chBuf[0] == 13 && dwRead == 1) {
-                chBuf[1] = 10;
-                dwRead = 2;
-            }
-            bSuccess = WriteFile(childStdIn, chBuf, dwRead, &dwWritten, NULL);
-            if(!bSuccess) {
-                cout << "no success writing stdin to client" << endl;
-                return;
-            }
-        }
-    }
 }
 
 /*void transferStdOut() {
@@ -197,22 +111,26 @@ int main(int argc, char **argv) {
 
     if(g_debug) cout << "enabled debug mode!" << endl;
     ClientHandler handler(getDefaultCmdInterpreter() + "\\cmd.exe");
-    PipeHandler in(PipeHandler::STDIN_PIPE);
+    InputPipe in;
 //    PipeHandler out(PipeHandler::STDOUT_PIPE);
 /*    PipeHandler err(PipeHandler::STDERR_PIPE);*/
-    
+    in.start();
+
     cout << "Starting process: " << ((handler.start(in.readHandle(), GetStdHandle(STD_OUTPUT_HANDLE), GetStdHandle(STD_ERROR_HANDLE))) ? "succeeded" : "failed") << endl;
-    handler.createMonitor();
+	in.setContentCheckEvent(handler.contentCheckNotifyEvent());
     char tmp[1024];
     OutputDebugString("trying to open");
     sprintf(tmp, "kcwsh-bufferSize-%x", handler.processId());
-    bufferSize.create(tmp, 2);
+    if(bufferSize.create(tmp, 2) != 0) {
+        bufferSize.errorExit();
+    };
     OutputDebugString(tmp);
     OutputDebugString("opened!");
-    childStdIn = in.writeHandle();
-    app.addCallback(handler.childProcess());
-    app.addCallback(handler.childMonitor());
-    app.addCallback(parentStdIn, &transferStdIn);
+//    childStdIn = in.writeHandle();
+
+    app.addCallback(in.exitEvent());
+    app.addCallback(handler.exitEvent());
+//    app.addCallback(parentStdIn, &transferStdIn);
 //    app.addCallback(out.readHandle(), &transferStdOut);
     
     app.exec();

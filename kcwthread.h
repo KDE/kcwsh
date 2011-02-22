@@ -3,17 +3,20 @@
 
 #include <windows.h>
 
+#include "kcwsharedmemory.h"
+#include "kcweventloop.h"
+
 /**
 * @author Patrick Spendrin
 * @date 2011
 */
 
-class KcwThread {
+class KcwThread : public KcwEventLoop {
     /**
     * This class is supposed to wrap thread handling.
     * To use this class, inherit KcwThread and overload run() in your class.
     * If you want to start your thread, just call start() (you don't need to
-    * overload that function).
+    * overload that function). The default implementation just starts the eventloop.
     */
     public:
         /**
@@ -34,23 +37,30 @@ class KcwThread {
         void start();
 
         /**
-        * this function is called when the thread is running. You might want to 
-        * add an eventloop yourself, in case you need that.
+        * this function is called when the thread is running. There is an eventLoop
+        * running per default. You can override this behaviour by overloading run().
         */
         virtual DWORD run();
 
         /**
         * this function returns the handle used for signaling the exitEvent. Since
         * currently there is no threadsave implementation available for signaling the
-        * exitEvent, you should use this getter instead, so you will not be able to
-        * change the event status by accident.
+        * exitEvent, you should use this getter instead.
         */
-        HANDLE exitEvent() const;
+        virtual HANDLE exitEvent();
+
+        /**
+        * this function sets the exitEvent handle
+        */
+        void setExitEvent(HANDLE exitEventHandle);
     private:
         static DWORD WINAPI monitorThreadStatic(LPVOID lpParameter);
         DWORD monitorThread();
+        static int getUniqueCounter();
+
         static int threadCount;
 
+        static KcwSharedMemory<int> s_globalThreadCounter;
         HANDLE m_thread;
         HANDLE m_exitEvent;
 };

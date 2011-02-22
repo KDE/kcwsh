@@ -1,5 +1,12 @@
 #include "pipehandler.h"
 
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#define BUFSIZE 4096
+
+static bool g_debug;
 SECURITY_ATTRIBUTES PipeHandler::s_saAttr = {   sizeof(SECURITY_ATTRIBUTES),
                                                 NULL,
                                                 TRUE
@@ -33,9 +40,103 @@ HANDLE PipeHandler::writeHandle() {
     return m_write;
 }
 
-void PipeHandler::read() {
+/************************************************************************************************
+*
+*************************************************************************************************/
+InputPipe::InputPipe()
+ : PipeHandler(PipeHandler::STDIN_PIPE) {
+    addCallback(GetStdHandle(STD_INPUT_HANDLE), CB(transferStdIn), this);
 }
 
-void PipeHandler::write() {
+void parseEscapeSequence(char *esc, int length) {
+/*    char tmp[BUFSIZE], d1;
+    if(esc[0] == '[') {
+        sprintf(tmp, "got escape sequence with suffix '%c' data: '%s'", esc[length - 1], &esc[1]);
+        OutputDebugString(tmp);
+        switch(esc[length - 1]) {
+            case 't':   {   // setting of the buffer size
+                            std::istringstream i(&esc[1]);
+                            if( i >> bufferSize[0] >> d1 >> bufferSize[1] ){
+                                bufferSize.notify();
+                            }
+                            break;
+                        }
+            default:    {
+                        };
+        };
+    }*/
+}
+
+void InputPipe::setContentCheckEvent(HANDLE evnt) {
+	m_contentCheck = evnt;
+}
+
+
+// this needs to be moved into its own thread, otherwise it blocks to much
+void InputPipe::transferStdIn() {
+    DWORD dwRead = 0, dwWritten, dwResult, inputEvents, ret = 0;
+    CHAR chBuf[BUFSIZE];
+    char tmp[1024];
+    BOOL bSuccess = FALSE;
+    static char buffer[BUFSIZE];
+    static char bufLength = 0;
+    static int beginEsc = 0;
+    static bool inEscapeSeq = false;
+
+    dwResult = WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), 0);
+    
+    if(dwResult == WAIT_OBJECT_0) {
+        bSuccess = ReadFile(GetStdHandle(STD_INPUT_HANDLE), chBuf, BUFSIZE, &dwRead, NULL);
+        sprintf(tmp, "read string: ");
+        for(unsigned i = 0; i < dwRead; i++) {
+            buffer[bufLength + i] = chBuf[i];
+            sprintf(tmp, "%s %i", tmp, chBuf[i]);
+        }
+        bufLength += dwRead;
+        OutputDebugString(tmp);
+        if(!bSuccess) {
+            std::cout << "no success reading from stdin" << std::endl;
+            return;
+        }
+
+        for(int j = 0; j < bufLength; j++) {
+            // found the begin of an escape sequence
+            if(!inEscapeSeq && (buffer[j] == 0x1b || 
+               (g_debug && j > 1 && buffer[j - 2] == '\\' && buffer[j - 1] == '\\' && buffer[j] == 'e'))) {
+                beginEsc = j + 1;
+//                OutputDebugString("inEscapeSequence");
+                inEscapeSeq = true;
+            }
+            
+            // found the end of an escape sequence
+            if(inEscapeSeq && buffer[j] == 13) {
+                buffer[j] = 0;
+                parseEscapeSequence(&buffer[beginEsc], j - beginEsc);
+//                OutputDebugString("end inEscapeSequence");
+                inEscapeSeq = false;
+                if(buffer[beginEsc - 1] != 0x1b) {
+                    bufLength = beginEsc - 3;
+                } else {
+                    bufLength = beginEsc - 1;
+                }
+
+                buffer[bufLength] = 0;
+                return;
+            }
+        }
+        
+        if(!inEscapeSeq) {
+            if(chBuf[0] == 13 && dwRead == 1) {
+                chBuf[1] = 10;
+                dwRead = 2;
+            }
+			SetEvent(m_contentCheck);
+            bSuccess = WriteFile(writeHandle(), chBuf, dwRead, &dwWritten, NULL);
+            if(!bSuccess) {
+                std::cout << "no success writing stdin to client" << std::endl;
+                return;
+            }
+        }
+    }
 }
 
