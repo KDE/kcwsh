@@ -1,5 +1,5 @@
 #include "kcwapp.h"
 
-KcwApp::KcwApp() {
+KcwApp::KcwApp() : KcwEventLoop() {
 }
 

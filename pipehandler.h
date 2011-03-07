@@ -4,6 +4,7 @@
 #include <windows.h>
 
 #include "kcwthread.h"
+#include "kcwsharedmemory.h"
 
 class PipeHandler : public KcwThread {
     public:
@@ -24,9 +25,13 @@ class PipeHandler : public KcwThread {
 class InputPipe : public PipeHandler {
     public:
         InputPipe();
+		void setTargetProcessId(int processId);
 		void setContentCheckEvent(HANDLE evnt);
     private:
+		void parseEscapeSequence(char *esc, int length);
         KCW_CALLBACK(InputPipe, transferStdIn)
+		int m_targetPid;
+		KcwSharedMemory<int> m_bufferSize;
 		HANDLE m_contentCheck;
 };
 #endif /* pipehandler_h */

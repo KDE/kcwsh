@@ -21,5 +21,5 @@ void ServerHandler::connect() {
 void ServerHandler::disconnect() {
     // quit the eventloop and thus also the thread
     quit();
-    OutputDebugString("disconnected!");
+    OutputDebugStringA("disconnected!");
 }

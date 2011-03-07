@@ -56,11 +56,10 @@ class KcwThread : public KcwEventLoop {
     private:
         static DWORD WINAPI monitorThreadStatic(LPVOID lpParameter);
         DWORD monitorThread();
+
         static int getUniqueCounter();
-
-        static int threadCount;
-
         static KcwSharedMemory<int> s_globalThreadCounter;
+
         HANDLE m_thread;
         HANDLE m_exitEvent;
 };

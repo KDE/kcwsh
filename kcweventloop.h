@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <vector>
 
+#include "kcwsharedmemory.h"
+
 typedef void (*eventCallback)(void *obj);
 
 class KcwEventLoop {
@@ -57,7 +59,11 @@ class KcwEventLoop {
         std::vector<void*> m_objects;
         std::vector<HANDLE> m_handles;
         int m_refreshInterval;
+		const int m_eventLoopId;
         HANDLE m_eventHandle;
+        CRITICAL_SECTION m_criticalSection;
+        static int getUniqueCounter();
+        static KcwSharedMemory<int> s_globalEventLoopCounter;
 };
 
 #define KCW_CALLBACK(class, name) \

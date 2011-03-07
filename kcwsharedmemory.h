@@ -57,7 +57,7 @@ void KcwSharedMemory<T>::errorExit() {
     char* lpMsgBuf = NULL;
     DWORD dw = GetLastError();
 
-    FormatMessage(
+    FormatMessageA(
         FORMAT_MESSAGE_ALLOCATE_BUFFER |
         FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -67,7 +67,7 @@ void KcwSharedMemory<T>::errorExit() {
         lpMsgBuf,
         0, NULL );
 
-    OutputDebugString(lpMsgBuf);
+    OutputDebugStringA(lpMsgBuf);
     LocalFree(lpMsgBuf);
     ExitProcess(dw);
 }
@@ -83,9 +83,9 @@ int KcwSharedMemory<T>::create(const std::string& strName, DWORD dwSize) {
     // if the file handle already is set, expect it to be set correctly and don't reopen it
     if(m_sharedMemHandle != NULL) return 0;
 
-    m_notificationEvent = ::CreateEvent(&sa_event, FALSE, FALSE, (m_name + "_req_event").c_str());
+    m_notificationEvent = ::CreateEventA(&sa_event, FALSE, FALSE, (m_name + "_req_event").c_str());
 
-    m_sharedMemHandle = ::CreateFileMapping(INVALID_HANDLE_VALUE,
+    m_sharedMemHandle = ::CreateFileMappingA(INVALID_HANDLE_VALUE,
                                             &sa,
                                             PAGE_EXECUTE_READWRITE,
                                             0,
@@ -112,10 +112,10 @@ int KcwSharedMemory<T>::open(const std::string& strName) {
     // if the file handle already is set, expect it to be set correctly and don't reopen it
     if(m_sharedMemHandle != NULL) return 0;
 
-//    OutputDebugString((std::string("key: ").append(m_name)).c_str());
+//    OutputDebugStringA((std::string("key: ").append(m_name)).c_str());
 
-    m_notificationEvent = ::OpenEvent(EVENT_ALL_ACCESS, FALSE, (m_name + "_req_event").c_str());
-    m_sharedMemHandle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, m_name.c_str());
+    m_notificationEvent = ::OpenEventA(EVENT_ALL_ACCESS, FALSE, (m_name + "_req_event").c_str());
+    m_sharedMemHandle = ::OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, m_name.c_str());
 
     if (!m_sharedMemHandle || (m_sharedMemHandle == INVALID_HANDLE_VALUE)) {
         return -1;

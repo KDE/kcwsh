@@ -38,9 +38,9 @@ void RemoteExec::bufferSizeCallback(void *obj) {
     COORD   finalCoordBufferSize;
 
     sprintf(tmp, "resizing request for %i x %i", s_bufferSize[0], s_bufferSize[1]);
-    OutputDebugString(tmp);
+    OutputDebugStringA(tmp);
 
-    hStdOut = ::CreateFile( "CONOUT$",
+    hStdOut = ::CreateFileA( "CONOUT$",
                             GENERIC_WRITE | GENERIC_READ,
                             FILE_SHARE_READ | FILE_SHARE_WRITE,
                             NULL,
@@ -51,7 +51,7 @@ void RemoteExec::bufferSizeCallback(void *obj) {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     ::GetConsoleScreenBufferInfo(hStdOut, &csbi);
     sprintf(tmp, "Console size: %ix%i\n", csbi.dwSize.X, csbi.dwSize.Y);
-    OutputDebugString(tmp);
+    OutputDebugStringA(tmp);
 
     // first, resize rows
     finalCoordBufferSize.X  = s_bufferSize[0];
@@ -63,13 +63,15 @@ void RemoteExec::bufferSizeCallback(void *obj) {
 
 void RemoteExec::bufferContentCheck(void *obj) {
 	char tmp[1024];
-	HANDLE hStdOut = ::CreateFile("CONOUT$",
+    DWORD dwHandleInfo;
+	HANDLE hStdOut = ::CreateFileA("CONOUT$",
 								GENERIC_WRITE | GENERIC_READ,
 								FILE_SHARE_READ | FILE_SHARE_WRITE,
 								NULL,
 								OPEN_EXISTING,
 								0,
 								0);
+
 
 	CONSOLE_SCREEN_BUFFER_INFO	csbiConsole;
 	COORD						coordConsoleSize;
@@ -80,7 +82,7 @@ void RemoteExec::bufferContentCheck(void *obj) {
 	coordConsoleSize.Y	= csbiConsole.srWindow.Bottom - csbiConsole.srWindow.Top + 1;
 	
 	sprintf(tmp, "gcsbi: %i x %i / (%i,%i) x (%i,%i)", coordConsoleSize.X, coordConsoleSize.Y, csbiConsole.srWindow.Left, csbiConsole.srWindow.Top, csbiConsole.srWindow.Right, csbiConsole.srWindow.Bottom);
-	OutputDebugString(tmp);
+	OutputDebugStringA(tmp);
 
 	// do console output buffer reading
 	DWORD					dwScreenBufferSize	= coordConsoleSize.X * coordConsoleSize.Y;
@@ -98,12 +100,13 @@ void RemoteExec::bufferContentCheck(void *obj) {
 	// ReadConsoleOutput seems to fail for large (around 6k CHAR_INFO's) buffers
 	// here we calculate max buffer size (row count) for safe reading
 	coordBufferSize.X	= csbiConsole.srWindow.Right - csbiConsole.srWindow.Left + 1;
+	coordBufferSize.X	= 10;
 //	coordBufferSize.Y	= 6144 / coordBufferSize.X;
-	coordBufferSize.Y	= 10;
+	coordBufferSize.Y	= 11;
 
 	// initialize reading rectangle
 	srBuffer.Top		= csbiConsole.srWindow.Bottom - coordBufferSize.Y;
-	srBuffer.Bottom		= csbiConsole.srWindow.Bottom + 1;
+	srBuffer.Bottom		= csbiConsole.srWindow.Bottom + 2;
 	srBuffer.Left		= csbiConsole.srWindow.Left;
 	srBuffer.Right		= csbiConsole.srWindow.Left + csbiConsole.srWindow.Right - csbiConsole.srWindow.Left;
 
@@ -113,23 +116,31 @@ void RemoteExec::bufferContentCheck(void *obj) {
 //	{
 //		TRACE(L"Reading region: (%i, %i) - (%i, %i)\n", srBuffer.Left, srBuffer.Top, srBuffer.Right, srBuffer.Bottom);
 
+	sprintf(tmp, "before: (%i, %i)x(%i,%i)", srBuffer.Top, srBuffer.Left, srBuffer.Bottom, srBuffer.Right);
+	OutputDebugStringA(tmp);
+    if(!GetHandleInformation(hStdOut, &dwHandleInfo)) {
+        sprintf(tmp, "stdout handle is broken!");
+        OutputDebugStringA(tmp);
+    }
 	if(::ReadConsoleOutput(
 		hStdOut,
 		pScreenBuffer,
 		coordBufferSize,
 		coordStart,
 		&srBuffer)) {
-		OutputDebugString("managed to read console output buffer");
+		OutputDebugStringA("managed to read console output buffer");
 		for(int i = 0; i < coordBufferSize.Y; i++) {
 			sprintf(tmp, "Test output: ");
 			for(int j = 0; j < coordBufferSize.X; j++) {
 				sprintf(tmp, "%s%c", tmp, pScreenBuffer[i * coordBufferSize.X + j].Char.AsciiChar);
 			}
-			OutputDebugString(tmp);
+			OutputDebugStringA(tmp);
 		}
-		OutputDebugString("end of Test output");
+		sprintf(tmp, "after: (%i, %i)x(%i,%i)", srBuffer.Top, srBuffer.Left, srBuffer.Bottom, srBuffer.Right);
+		OutputDebugStringA(tmp);
+		OutputDebugStringA("end of Test output");
 	} else {
-		OutputDebugString("failed to read console output buffer!");
+		OutputDebugStringA("failed to read console output buffer!");
 	}
 
 //		srBuffer.Top		= srBuffer.Top + coordBufferSize.Y;

@@ -7,6 +7,8 @@
 
 #include "kcwsharedmemory.h"
 #include "kcwthread.h"
+#include "kcwinjector.h"
+#include "kcwprocess.h"
 
 class ClientHandler : public KcwThread {
     public:
@@ -20,8 +22,9 @@ class ClientHandler : public KcwThread {
         DWORD processId() const;
 
     private:
-        bool inject();
         std::string getModulePath(HMODULE hModule);
+        KcwInjector m_injector;
+        KcwProcess m_process;
 
         PROCESS_INFORMATION m_procInfo;
         std::string m_procName;
