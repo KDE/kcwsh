@@ -46,7 +46,7 @@ DWORD WINAPI KcwThread::monitorThreadStatic(LPVOID lpParameter) {
 // an internal function used to access private data members (to signal the event)
 DWORD KcwThread::monitorThread() {
     DWORD dwThreadResult = 0;
-    dwThreadResult = KcwThread::run();
+    dwThreadResult = run();
     SetEvent(m_exitEvent);
     return dwThreadResult;
 }
@@ -81,8 +81,8 @@ int KcwThread::getUniqueCounter() {
     }
 
     // increase the counter by one, currently this is still not thread save
-    char tmp[1024];
-    sprintf(tmp, "opening global thread number %i", *s_globalThreadCounter);
-    OutputDebugStringA(tmp);
+    WCHAR tmp[1024];
+    wsprintf(tmp, L"opening global thread number %i", *s_globalThreadCounter);
+    OutputDebugString(tmp);
     return (*s_globalThreadCounter)++;
 }
