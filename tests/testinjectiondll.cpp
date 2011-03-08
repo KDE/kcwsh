@@ -65,7 +65,7 @@
                     coordBufferSize,
                     coordStart,
                     &srBuffer)) {
-                    OutputDebugStringA("managed to read console output buffer");
+                    OutputDebugString(TEXT("managed to read console output buffer"));
                     for(int i = 0; i < coordBufferSize.Y; i++) {
                         sprintf(tmp, "Test output: ");
                         for(int j = 0; j < coordBufferSize.X; j++) {
@@ -75,23 +75,23 @@
                     }
                     sprintf(tmp, "after: (%i, %i)x(%i,%i)", srBuffer.Top, srBuffer.Left, srBuffer.Bottom, srBuffer.Right);
                     OutputDebugStringA(tmp);
-                    OutputDebugStringA("end of Test output");
+                    OutputDebugString(TEXT("end of Test output"));
                 } else {
-                    OutputDebugStringA("failed to read console output buffer!");
+                    OutputDebugString(TEXT("failed to read console output buffer!"));
                 }
                 WaitForSingleObject(hTimer, 1000);
             }
             return 0;
         }
 
+static KcwThread tt;
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved */ ) {
     switch(dwReason) {
         case DLL_PROCESS_ATTACH:
         {
-            OutputDebugStringA("injected!");
+            OutputDebugString(TEXT("injected!"));
 //            HANDLE thread = ::CreateThread(NULL, 0, run, NULL, CREATE_SUSPENDED, NULL);
 //            ResumeThread(thread);
-            KcwThread tt;
             char tmp[1024];
             sprintf(tmp, "the address of tt: %x", &tt);
             OutputDebugStringA(tmp);
