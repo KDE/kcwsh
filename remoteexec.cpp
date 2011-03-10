@@ -1,7 +1,7 @@
 #include "remoteexec.h"
 #include "kcw/kcwdebug.h"
 
-KcwSharedMemory<int> RemoteExec::s_bufferSize;
+KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
 KcwSharedMemory<HANDLE> RemoteExec::s_exitEvent;
 KcwSharedMemory<HANDLE> RemoteExec::s_contentCheck;
 
@@ -36,7 +36,7 @@ void RemoteExec::bufferSizeCallback(void *obj) {
     HANDLE hStdOut;
     COORD   finalCoordBufferSize;
 
-    KcwDebug() << "resizing request for" << s_bufferSize[0] << "x" << s_bufferSize[1];
+    KcwDebug() << "resizing request for" << s_bufferSize->X << "x" << s_bufferSize->Y;
 
     hStdOut = ::CreateFileA( "CONOUT$",
                             GENERIC_WRITE | GENERIC_READ,
@@ -51,7 +51,7 @@ void RemoteExec::bufferSizeCallback(void *obj) {
     KcwDebug() << "Console size:" << csbi.dwSize.X << "x" << csbi.dwSize.Y << endl;
 
     // first, resize rows
-    finalCoordBufferSize.X  = s_bufferSize[0];
+    finalCoordBufferSize.X  = s_bufferSize->X;
     finalCoordBufferSize.Y  = csbi.dwSize.Y; // for now, allow resizing only in X direction (width)
 
     // if new buffer size is > than old one, we need to resize the buffer first

@@ -31,7 +31,7 @@ class InputPipe : public PipeHandler {
         void parseEscapeSequence(char *esc, int length);
         KCW_CALLBACK(InputPipe, transferStdIn)
         int m_targetPid;
-        KcwSharedMemory<int> m_bufferSize;
+        KcwSharedMemory<COORD> m_bufferSize;
         HANDLE m_contentCheck;
 };
 #endif /* pipehandler_h */

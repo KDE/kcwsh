@@ -56,7 +56,7 @@ void InputPipe::setTargetProcessId(int processId) {
     m_targetPid = processId;
     KcwDebug() << "trying to open";
     wsprintf(tmp, L"kcwsh-bufferSize-%x", m_targetPid);
-    if(m_bufferSize.create(tmp, 2) != 0) {
+    if(m_bufferSize.create(tmp) != 0) {
         m_bufferSize.errorExit();
     };
     KcwDebug() << tmp;
@@ -70,7 +70,7 @@ void InputPipe::parseEscapeSequence(char *esc, int length) {
         switch(esc[length - 1]) {
             case 't':   {   // setting of the buffer size
                             std::istringstream i(&esc[1]);
-                            if( i >> m_bufferSize[0] >> d1 >> m_bufferSize[1] ){
+                            if( i >> m_bufferSize->X >> d1 >> m_bufferSize->Y ){
                                 m_bufferSize.notify();
                             }
                             break;
@@ -90,7 +90,6 @@ void InputPipe::setContentCheckEvent(HANDLE evnt) {
 void InputPipe::transferStdIn() {
     DWORD dwRead = 0, dwWritten, dwResult, ret = 0;
     CHAR chBuf[BUFSIZE];
-    WCHAR tmp[1024];
     BOOL bSuccess = FALSE;
     static char buffer[BUFSIZE];
     static int bufLength = 0;

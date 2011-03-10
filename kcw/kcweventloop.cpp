@@ -141,7 +141,7 @@ int KcwEventLoop::getUniqueCounter() {
     // KcwSharedMemory<T>::open() and KcwSharedMemory<T>::create()
     // return 0 in case they already have been opened.
     if(s_globalEventLoopCounter.open(L"KcwEventLoopGlobal") != 0) {
-        if(s_globalEventLoopCounter.create(L"KcwEventLoopGlobal", 1) != 0) {
+        if(s_globalEventLoopCounter.create(L"KcwEventLoopGlobal") != 0) {
             // in case of failure, exit the complete application
             s_globalEventLoopCounter.errorExit();
         } else {

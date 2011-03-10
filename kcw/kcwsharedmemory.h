@@ -10,9 +10,9 @@ class KcwSharedMemory {
     public:
 
         KcwSharedMemory();
-        KcwSharedMemory(const std::wstring& strName, DWORD dwSize, bool bCreate = true);
+        KcwSharedMemory(const std::wstring& strName, bool bCreate = true);
 
-        inline int create(const std::wstring& strName, DWORD dwSize);
+        inline int create(const std::wstring& strName);
         inline int open(const std::wstring& strName);
         inline void errorExit();
         inline void notify();
@@ -25,7 +25,6 @@ class KcwSharedMemory {
 
     private:
         std::wstring m_name;
-        DWORD       m_size;
         HANDLE      m_sharedMemHandle;
         T*          m_sharedMem;
         HANDLE      m_notificationEvent;
@@ -39,7 +38,7 @@ KcwSharedMemory<T>::KcwSharedMemory()
 
 
 template<typename T>
-KcwSharedMemory<T>::KcwSharedMemory(const std::wstring& strName, DWORD dwSize, bool bCreate)
+KcwSharedMemory<T>::KcwSharedMemory(const std::wstring& strName, bool bCreate)
 : m_name(strName),
   m_sharedMemHandle(NULL) {
     if (bCreate)
@@ -73,12 +72,11 @@ void KcwSharedMemory<T>::errorExit() {
 }
 
 template<typename T>
-int KcwSharedMemory<T>::create(const std::wstring& strName, DWORD dwSize) {
+int KcwSharedMemory<T>::create(const std::wstring& strName) {
     static SECURITY_ATTRIBUTES sa;
     static SECURITY_ATTRIBUTES sa_event;
 
     m_name      = strName;
-    m_size      = dwSize;
 
     // if the file handle already is set, expect it to be set correctly and don't reopen it
     if(m_sharedMemHandle != NULL) return 0;
@@ -89,7 +87,7 @@ int KcwSharedMemory<T>::create(const std::wstring& strName, DWORD dwSize) {
                                             &sa,
                                             PAGE_EXECUTE_READWRITE,
                                             0,
-                                            m_size * sizeof(T),
+                                            sizeof(T),
                                             m_name.c_str());
 
     if(m_sharedMemHandle == NULL) {
@@ -101,7 +99,7 @@ int KcwSharedMemory<T>::create(const std::wstring& strName, DWORD dwSize) {
         return -2;
     }
 
-    ::ZeroMemory(m_sharedMem, m_size * sizeof(T));
+    ::ZeroMemory(m_sharedMem, sizeof(T));
     return 0;
 }
 
@@ -127,11 +125,6 @@ int KcwSharedMemory<T>::open(const std::wstring& strName) {
         return -2;
     }
     return 0;
-}
-
-template<typename T>
-T& KcwSharedMemory<T>::operator[](size_t index) const {
-    return *(m_sharedMem + index);
 }
 
 template<typename T>
