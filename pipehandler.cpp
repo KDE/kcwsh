@@ -15,7 +15,7 @@ SECURITY_ATTRIBUTES PipeHandler::s_saAttr = {   sizeof(SECURITY_ATTRIBUTES),
 
 PipeHandler::PipeHandler( STREAM_TYPE stt ) {
     if ( ! CreatePipe(&m_read, &m_write, &s_saAttr, 0) ) {
-        OutputDebugStringA("failed to create pipe!");
+        OutputDebugString(L"failed to create pipe!");
         return;
     }
 
@@ -23,12 +23,12 @@ PipeHandler::PipeHandler( STREAM_TYPE stt ) {
     switch(stt) {
         case PipeHandler::STDIN_PIPE:
             if ( ! SetHandleInformation(m_write, HANDLE_FLAG_INHERIT, 0) )
-                OutputDebugStringA("not inherited");
+                OutputDebugString(L"not inherited");
             break;
         case PipeHandler::STDOUT_PIPE:
         case PipeHandler::STDERR_PIPE:
             if ( ! SetHandleInformation(m_read, HANDLE_FLAG_INHERIT, 0) )
-                OutputDebugStringA("not inherited");
+                OutputDebugString(L"not inherited");
             break;
     }
 }
@@ -50,22 +50,23 @@ InputPipe::InputPipe()
 }
 
 void InputPipe::setTargetProcessId(int processId) {
-	char tmp[1024];
+	WCHAR tmp[1024];
 	m_targetPid = processId;
-    OutputDebugStringA("trying to open");
-    sprintf(tmp, "kcwsh-bufferSize-%x", m_targetPid);
+    OutputDebugString(L"trying to open");
+    wsprintf(tmp, L"kcwsh-bufferSize-%x", m_targetPid);
     if(m_bufferSize.create(tmp, 2) != 0) {
         m_bufferSize.errorExit();
     };
-    OutputDebugStringA(tmp);
-    OutputDebugStringA("opened!");
+    OutputDebugString(tmp);
+    OutputDebugString(L"opened!");
 }
 
 void InputPipe::parseEscapeSequence(char *esc, int length) {
-    char tmp[BUFSIZE], d1;
+    WCHAR tmp[BUFSIZE];
+    char d1;
     if(esc[0] == '[') {
-        sprintf(tmp, "got escape sequence with suffix '%c' data: '%s'", esc[length - 1], &esc[1]);
-        OutputDebugStringA(tmp);
+        wsprintf(tmp, L"got escape sequence with suffix '%c' data: '%s'", esc[length - 1], &esc[1]);
+        OutputDebugString(tmp);
         switch(esc[length - 1]) {
             case 't':   {   // setting of the buffer size
                             std::istringstream i(&esc[1]);
@@ -89,26 +90,26 @@ void InputPipe::setContentCheckEvent(HANDLE evnt) {
 void InputPipe::transferStdIn() {
     DWORD dwRead = 0, dwWritten, dwResult, inputEvents, ret = 0;
     CHAR chBuf[BUFSIZE];
-    char tmp[1024];
+    WCHAR tmp[1024];
     BOOL bSuccess = FALSE;
     static char buffer[BUFSIZE];
     static char bufLength = 0;
     static int beginEsc = 0;
     static bool inEscapeSeq = false;
 	
-	OutputDebugStringA("calling transferStdIn");
+	OutputDebugString(L"calling transferStdIn");
 
     dwResult = WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), 0);
     
     if(dwResult == WAIT_OBJECT_0) {
         bSuccess = ReadFile(GetStdHandle(STD_INPUT_HANDLE), chBuf, BUFSIZE, &dwRead, NULL);
-        sprintf(tmp, "read string: ");
+        wsprintf(tmp, L"read string: ");
         for(unsigned i = 0; i < dwRead; i++) {
             buffer[bufLength + i] = chBuf[i];
-            sprintf(tmp, "%s %i", tmp, chBuf[i]);
+            wsprintf(tmp, L"%s %i", tmp, chBuf[i]);
         }
         bufLength += dwRead;
-        OutputDebugStringA(tmp);
+        OutputDebugString(tmp);
         if(!bSuccess) {
             std::cout << "no success reading from stdin" << std::endl;
             return;
@@ -119,7 +120,7 @@ void InputPipe::transferStdIn() {
             if(!inEscapeSeq && (buffer[j] == 0x1b || 
                (g_debug && j > 1 && buffer[j - 2] == '\\' && buffer[j - 1] == '\\' && buffer[j] == 'e'))) {
                 beginEsc = j + 1;
-//                OutputDebugStringA("inEscapeSequence");
+//                OutputDebugString(L"inEscapeSequence");
                 inEscapeSeq = true;
             }
             
@@ -127,7 +128,7 @@ void InputPipe::transferStdIn() {
             if(inEscapeSeq && buffer[j] == 13) {
                 buffer[j] = 0;
                 parseEscapeSequence(&buffer[beginEsc], j - beginEsc);
-//                OutputDebugStringA("end inEscapeSequence");
+//                OutputDebugString(L"end inEscapeSequence");
                 inEscapeSeq = false;
                 if(buffer[beginEsc - 1] != 0x1b) {
                     bufLength = beginEsc - 3;
