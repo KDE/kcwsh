@@ -4,7 +4,6 @@
 #include <string>
 #include <cstdio>
 #include <windows.h>
-#include "kcwdebug.h"
 
 template<typename T>
 class KcwSharedMemory {
