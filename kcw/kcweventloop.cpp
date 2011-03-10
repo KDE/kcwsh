@@ -86,7 +86,7 @@ int KcwEventLoop::exec() {
     while ((dwWaitRes = ::WaitForMultipleObjects(handleSize, begin, FALSE, m_refreshInterval)) != WAIT_OBJECT_0) {
 //        LeaveCriticalSection(&m_criticalSection);
         if(dwWaitRes == WAIT_FAILED) {
-            LPVOID lpMsgBuf;
+            WCHAR* lpMsgBuf = NULL;
             DWORD dw = GetLastError(); 
             FormatMessage(
                 FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -95,7 +95,7 @@ int KcwEventLoop::exec() {
                 NULL,
                 dw,
                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                (LPTSTR) &lpMsgBuf,
+                lpMsgBuf,
                 0, NULL );
 
 //            EnterCriticalSection(&m_criticalSection);
