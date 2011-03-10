@@ -18,7 +18,7 @@ class ClientHandler : public KcwThread {
         bool start(HANDLE _stdin = 0, HANDLE _stdout = 0, HANDLE _stderr = 0);
 
         HANDLE childProcess();
-		HANDLE contentCheckNotifyEvent();
+        HANDLE contentCheckNotifyEvent();
         DWORD processId() const;
 
     private:

@@ -72,5 +72,5 @@ DWORD ClientHandler::processId() const {
     return m_process.pid();
 }
 HANDLE ClientHandler::contentCheckNotifyEvent() {
-	return m_contentCheck.notificationEvent();
+    return m_contentCheck.notificationEvent();
 }
