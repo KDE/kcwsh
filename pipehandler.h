@@ -25,13 +25,13 @@ class PipeHandler : public KcwThread {
 class InputPipe : public PipeHandler {
     public:
         InputPipe();
-		void setTargetProcessId(int processId);
-		void setContentCheckEvent(HANDLE evnt);
+        void setTargetProcessId(int processId);
+        void setContentCheckEvent(HANDLE evnt);
     private:
-		void parseEscapeSequence(char *esc, int length);
+        void parseEscapeSequence(char *esc, int length);
         KCW_CALLBACK(InputPipe, transferStdIn)
-		int m_targetPid;
-		KcwSharedMemory<int> m_bufferSize;
-		HANDLE m_contentCheck;
+        int m_targetPid;
+        KcwSharedMemory<int> m_bufferSize;
+        HANDLE m_contentCheck;
 };
 #endif /* pipehandler_h */
