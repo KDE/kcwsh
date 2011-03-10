@@ -32,7 +32,7 @@ DWORD WINAPI KcwThread::monitorThreadStatic(LPVOID lpParameter) {
     }
     KcwThread* pKcwThread = reinterpret_cast<KcwThread*>(lpParameter);
     KcwDebug() << "monitorThreadStatic called with argument:" << pKcwThread;
-    
+
     const unsigned ret = pKcwThread->monitorThread();
     return ret;
 }

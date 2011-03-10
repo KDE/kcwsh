@@ -8,16 +8,16 @@ KcwSharedMemory<int> KcwEventLoop::s_globalEventLoopCounter;
 
 KcwEventLoop::KcwEventLoop(HANDLE eventHandle)
  :  m_refreshInterval(10),
-	m_eventLoopId(getUniqueCounter()) {
+    m_eventLoopId(getUniqueCounter()) {
     InitializeCriticalSection(&m_criticalSection);
     EnterCriticalSection(&m_criticalSection);
     if(eventHandle != NULL) {
-		m_eventHandle = eventHandle;
-	} else {
+        m_eventHandle = eventHandle;
+    } else {
         WCHAR tmp[1024];
         wsprintf(tmp, L"KcwEventLoop-%i", m_eventLoopId);
         m_eventHandle = ::CreateEvent(NULL, FALSE, FALSE, tmp);
-	}
+    }
 
     m_handles.push_back(m_eventHandle);
     m_objects.push_back(NULL);
@@ -38,17 +38,15 @@ void KcwEventLoop::addCallback(HANDLE hndl, eventCallback cllbck, void *callback
 }
 
 void KcwEventLoop::quit() {
-    WCHAR tmp[1024];
     DWORD dwProcessId = ::GetCurrentProcessId();
-	wsprintf(tmp, L"quit was called in process %i", dwProcessId);
-	OutputDebugString(tmp);
+    KcwDebug() << "quit was called in process" << dwProcessId;
     EnterCriticalSection(&m_criticalSection);
     SetEvent(m_eventHandle);
     LeaveCriticalSection(&m_criticalSection);
 }
 
 void KcwEventLoop::setRefreshInterval(int secs) {
-	OutputDebugString(L"setting refresh interval");
+    KcwDebug() << "setting refresh interval";
     EnterCriticalSection(&m_criticalSection);
     m_refreshInterval = secs;
     LeaveCriticalSection(&m_criticalSection);
@@ -59,7 +57,7 @@ int KcwEventLoop::refreshInterval() const {
 }
 
 void KcwEventLoop::setExitEvent(HANDLE event) {
-	OutputDebugString(L"setting exit event");
+    KcwDebug() << "setting exit event";
     EnterCriticalSection(&m_criticalSection);
     m_eventHandle = event;
     m_handles.at(0) = event;
@@ -72,21 +70,19 @@ HANDLE KcwEventLoop::exitEvent() {
 
 int KcwEventLoop::exec() {
     DWORD dwHandleInfo = 0, dwWaitRes = 0, dwProcessId = ::GetCurrentProcessId();
-    WCHAR tmp[1024];
 
-	std::vector<HANDLE> locHandles(m_handles);
+    std::vector<HANDLE> locHandles(m_handles);
     EnterCriticalSection(&m_criticalSection);
     const int handleSize = locHandles.size();
     for(int i = 0; i < handleSize; i++) {
         if(!GetHandleInformation(locHandles.at(i), &dwHandleInfo)) {
-            wsprintf(tmp, L"Handle #%i is broken in process %i", i, dwProcessId);
-            OutputDebugString(tmp);
-			LeaveCriticalSection(&m_criticalSection);
-			return -1;
+            KcwDebug() << "Handle #" << i << "is broken in process" << dwProcessId;
+            LeaveCriticalSection(&m_criticalSection);
+            return -1;
         }
     };
 
-	HANDLE *begin = &locHandles.front();
+    HANDLE *begin = &locHandles.front();
     while ((dwWaitRes = ::WaitForMultipleObjects(handleSize, begin, FALSE, m_refreshInterval)) != WAIT_OBJECT_0) {
 //        LeaveCriticalSection(&m_criticalSection);
         if(dwWaitRes == WAIT_FAILED) {
@@ -103,9 +99,9 @@ int KcwEventLoop::exec() {
                 0, NULL );
 
 //            EnterCriticalSection(&m_criticalSection);
-            wsprintf(tmp, L"eventLoop wait failed!\npid: %i #handles: %i result: %i\n%s", 
-                         dwProcessId, locHandles.size(), dwWaitRes, (WCHAR*)lpMsgBuf);
-            OutputDebugString(tmp);
+            KcwDebug() << "eventLoop wait failed!" << endl << "pid:" << dwProcessId << "#handles:" << locHandles.size() << "result:" << dwWaitRes << endl;
+            OutputDebugString(lpMsgBuf);
+            LocalFree(lpMsgBuf);
             break;
         }
 
@@ -115,24 +111,22 @@ int KcwEventLoop::exec() {
         for(int i = 0; i < handleSize; i++) {
             if(dwWaitRes == WAIT_OBJECT_0 + i) {
                 if(m_callbacks[i] != NULL) {
-					wsprintf(tmp, L"calling callback for event #%i in process %i", i, dwProcessId);
-					OutputDebugString(tmp);
-					eventCallback callback = m_callbacks[i];
-					void *arg = m_objects[i];
-					LeaveCriticalSection(&m_criticalSection);
-					callback(arg);
-					EnterCriticalSection(&m_criticalSection);
-				} else {
-					wsprintf(tmp, L"calling quit for event #%i in process %i", i, dwProcessId);
-					OutputDebugString(tmp);
-					LeaveCriticalSection(&m_criticalSection);
-					quit();
-					EnterCriticalSection(&m_criticalSection);
-				}
+                    KcwDebug() << "calling callback for event #" << i << "in process" << dwProcessId;
+                    eventCallback callback = m_callbacks[i];
+                    void *arg = m_objects[i];
+                    LeaveCriticalSection(&m_criticalSection);
+                    callback(arg);
+                    EnterCriticalSection(&m_criticalSection);
+                } else {
+                    KcwDebug() << "calling quit for event #" << i << "in process" << dwProcessId;
+                    LeaveCriticalSection(&m_criticalSection);
+                    quit();
+                    EnterCriticalSection(&m_criticalSection);
+                }
             }
         }
     }
-	LeaveCriticalSection(&m_criticalSection);
+    LeaveCriticalSection(&m_criticalSection);
     return 0;
 }
 
@@ -150,8 +144,6 @@ int KcwEventLoop::getUniqueCounter() {
     }
 
     // increase the counter by one, currently this is still not thread save
-    WCHAR tmp[1024];
-    wsprintf(tmp, L"opening global eventLoop number %i", *s_globalEventLoopCounter);
-    OutputDebugString(tmp);
+    KcwDebug() << "opening global eventLoop number" << *s_globalEventLoopCounter;
     return (*s_globalEventLoopCounter)++;
 }
