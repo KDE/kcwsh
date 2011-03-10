@@ -5,6 +5,10 @@ cmake_minimum_required(VERSION 2.8)
 option(BUILD_GUI_TEST "build a gui app for testing purposes" ON)
 option(BUILD_TESTS "build unittests" ON)
 
+if(BUILD_TESTS)
+    enable_testing()
+endif(BUILD_TESTS)
+
 # required to check whether to build the kcwshtest
 find_package(Qt4)
 
