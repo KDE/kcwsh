@@ -4,9 +4,9 @@
 #include <windows.h>
 #include <vector>
 
-#include "kcwsharedmemory.h"
-
 typedef void (*eventCallback)(void *obj);
+
+template <typename T> class KcwSharedMemory;
 
 class KcwEventLoop {
     /**

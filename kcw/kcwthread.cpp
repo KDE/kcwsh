@@ -71,8 +71,8 @@ int KcwThread::getUniqueCounter() {
     // we need to check that our threadCounter has started
     // KcwSharedMemory<T>::open() and KcwSharedMemory<T>::create()
     // return 0 in case they already have been opened.
-    if(s_globalThreadCounter.open("KcwThreadGlobal") != 0) {
-        if(s_globalThreadCounter.create("KcwThreadGlobal", 1) != 0) {
+    if(s_globalThreadCounter.open(L"KcwThreadGlobal") != 0) {
+        if(s_globalThreadCounter.create(L"KcwThreadGlobal", 1) != 0) {
             // in case of failure, exit the complete application
             s_globalThreadCounter.errorExit();
         } else {

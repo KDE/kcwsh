@@ -12,18 +12,11 @@ find_package(Qt4)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE)
 
 string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-message(STATUS "${CMAKE_CXX_FLAGS_DEBUG}")
 string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-message(STATUS "${CMAKE_CXX_FLAGS_RELEASE}")
-set(kcw_SRCS
-    kcwapp.cpp
-    kcweventloop.cpp
-    kcwthread.cpp
-    kcwprocess.cpp
-    kcwinjector.cpp
-)
 
-add_library(kcw STATIC ${kcw_SRCS})
+add_subdirectory(kcw)
+
+include_directories(kcw)
 
 set(kcwsh_SRCS
     clienthandler.cpp
