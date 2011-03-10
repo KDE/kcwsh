@@ -1,6 +1,7 @@
 #include <windows.h>
 #include "serverhandler.h"
 #include "remoteexec.h"
+#include "kcw/kcwdebug.h"
 
 ServerHandler::ServerHandler() {
 }
@@ -21,5 +22,5 @@ void ServerHandler::connect() {
 void ServerHandler::disconnect() {
     // quit the eventloop and thus also the thread
     quit();
-    OutputDebugStringA("disconnected!");
+    KcwDebug() << "disconnected!";
 }
