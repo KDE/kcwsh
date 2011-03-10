@@ -1,4 +1,5 @@
 #include "remoteexec.h"
+#include "kcw/kcwdebug.h"
 
 KcwSharedMemory<int> RemoteExec::s_bufferSize;
 KcwSharedMemory<HANDLE> RemoteExec::s_exitEvent;
@@ -9,21 +10,21 @@ RemoteExec::RemoteExec() {
 
 // open the shared memories
 void RemoteExec::openConnections() {
-    char tmp[1024];
+    WCHAR tmp[1024];
     DWORD dwProcessId = ::GetCurrentProcessId();
 
-    sprintf(tmp, "kcwsh-bufferSize-%x", dwProcessId);
+    wsprintf(tmp, L"kcwsh-bufferSize-%x", dwProcessId);
     if(s_bufferSize.open(tmp) != 0) {
         s_bufferSize.errorExit();
     };
 
-    sprintf(tmp, "kcwsh-exitEvent-%x", dwProcessId);
-    if(s_exitEvent.open(std::string(tmp)) != 0) {
+    wsprintf(tmp, L"kcwsh-exitEvent-%x", dwProcessId);
+    if(s_exitEvent.open(tmp) != 0) {
         s_exitEvent.errorExit();
     };
 
-    sprintf(tmp, "kcwsh-contentCheck-%x", dwProcessId);
-    if(s_contentCheck.open(std::string(tmp)) != 0) {
+    wsprintf(tmp, L"kcwsh-contentCheck-%x", dwProcessId);
+    if(s_contentCheck.open(tmp) != 0) {
         s_contentCheck.errorExit();
     };
 
@@ -31,14 +32,11 @@ void RemoteExec::openConnections() {
 
 // all the static callback functions
 void RemoteExec::bufferSizeCallback(void *obj) {
-    char tmp[1024], chBuf[1024];
-    DWORD dwRead;
     BOOL bSuccess = FALSE;
     HANDLE hStdOut;
     COORD   finalCoordBufferSize;
 
-    sprintf(tmp, "resizing request for %i x %i", s_bufferSize[0], s_bufferSize[1]);
-    OutputDebugStringA(tmp);
+    KcwDebug() << "resizing request for" << s_bufferSize[0] << "x" << s_bufferSize[1];
 
     hStdOut = ::CreateFileA( "CONOUT$",
                             GENERIC_WRITE | GENERIC_READ,
@@ -50,8 +48,7 @@ void RemoteExec::bufferSizeCallback(void *obj) {
 
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     ::GetConsoleScreenBufferInfo(hStdOut, &csbi);
-    sprintf(tmp, "Console size: %ix%i\n", csbi.dwSize.X, csbi.dwSize.Y);
-    OutputDebugStringA(tmp);
+    KcwDebug() << "Console size:" << csbi.dwSize.X << "x" << csbi.dwSize.Y << endl;
 
     // first, resize rows
     finalCoordBufferSize.X  = s_bufferSize[0];
@@ -62,7 +59,6 @@ void RemoteExec::bufferSizeCallback(void *obj) {
 }
 
 void RemoteExec::bufferContentCheck(void *obj) {
-	char tmp[1024];
     DWORD dwHandleInfo;
 	HANDLE hStdOut = ::CreateFileA("CONOUT$",
 								GENERIC_WRITE | GENERIC_READ,
@@ -81,8 +77,10 @@ void RemoteExec::bufferContentCheck(void *obj) {
 	coordConsoleSize.X	= csbiConsole.srWindow.Right - csbiConsole.srWindow.Left + 1;
 	coordConsoleSize.Y	= csbiConsole.srWindow.Bottom - csbiConsole.srWindow.Top + 1;
 	
-	sprintf(tmp, "gcsbi: %i x %i / (%i,%i) x (%i,%i)", coordConsoleSize.X, coordConsoleSize.Y, csbiConsole.srWindow.Left, csbiConsole.srWindow.Top, csbiConsole.srWindow.Right, csbiConsole.srWindow.Bottom);
-	OutputDebugStringA(tmp);
+	KcwDebug() << "gcsbi:" << coordConsoleSize.X << "x" << coordConsoleSize.Y 
+                           << "/ (" << csbiConsole.srWindow.Left << "," << csbiConsole.srWindow.Top
+                           << ") x (" << csbiConsole.srWindow.Right << "," << csbiConsole.srWindow.Bottom
+                           << ")";
 
 	// do console output buffer reading
 	DWORD					dwScreenBufferSize	= coordConsoleSize.X * coordConsoleSize.Y;
@@ -116,11 +114,9 @@ void RemoteExec::bufferContentCheck(void *obj) {
 //	{
 //		TRACE(L"Reading region: (%i, %i) - (%i, %i)\n", srBuffer.Left, srBuffer.Top, srBuffer.Right, srBuffer.Bottom);
 
-	sprintf(tmp, "before: (%i, %i)x(%i,%i)", srBuffer.Top, srBuffer.Left, srBuffer.Bottom, srBuffer.Right);
-	OutputDebugStringA(tmp);
+	KcwDebug() << "before: (" << srBuffer.Top << "," << srBuffer.Left << ") x (" << srBuffer.Bottom << "," << srBuffer.Right << ")";
     if(!GetHandleInformation(hStdOut, &dwHandleInfo)) {
-        sprintf(tmp, "stdout handle is broken!");
-        OutputDebugStringA(tmp);
+        KcwDebug() << "stdout handle is broken!";
     }
 	if(::ReadConsoleOutput(
 		hStdOut,
@@ -128,19 +124,18 @@ void RemoteExec::bufferContentCheck(void *obj) {
 		coordBufferSize,
 		coordStart,
 		&srBuffer)) {
-		OutputDebugStringA("managed to read console output buffer");
+		KcwDebug() << "managed to read console output buffer";
 		for(int i = 0; i < coordBufferSize.Y; i++) {
-			sprintf(tmp, "Test output: ");
+			KcwDebug() << "Test output: ";
 			for(int j = 0; j < coordBufferSize.X; j++) {
-				sprintf(tmp, "%s%c", tmp, pScreenBuffer[i * coordBufferSize.X + j].Char.AsciiChar);
+//				sprintf(tmp, "%s%c", tmp, pScreenBuffer[i * coordBufferSize.X + j].Char.AsciiChar);
 			}
-			OutputDebugStringA(tmp);
+//			OutputDebugStringA(tmp);
 		}
-		sprintf(tmp, "after: (%i, %i)x(%i,%i)", srBuffer.Top, srBuffer.Left, srBuffer.Bottom, srBuffer.Right);
-		OutputDebugStringA(tmp);
-		OutputDebugStringA("end of Test output");
+        KcwDebug() << "after: (" << srBuffer.Top << "," << srBuffer.Left << ") x (" << srBuffer.Bottom << "," << srBuffer.Right << ")";
+		KcwDebug() << "end of Test output";
 	} else {
-		OutputDebugStringA("failed to read console output buffer!");
+		KcwDebug() << "failed to read console output buffer!";
 	}
 
 //		srBuffer.Top		= srBuffer.Top + coordBufferSize.Y;
