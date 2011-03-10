@@ -10,9 +10,24 @@
 #include <string>
 
 class KcwProcess {
+    /**
+    * This class is used to abstract a process, either a running one or
+    * to start a new one.
+    */
     public:
+        /**
+        * start a new process using the executable @p execPath
+        */
         KcwProcess(std::string execPath);
+
+        /**
+        * wrap an already running process with @p pid
+        */
         KcwProcess(int pid);
+
+        /**
+        * the default constructor: you can set the executable path later
+        */
         KcwProcess();
 
         typedef enum {  KCW_STDIN_HANDLE,
@@ -20,8 +35,19 @@ class KcwProcess {
                         KCW_STDERR_HANDLE
                      } KCW_STREAM_TYPE;
 
+        /**
+        * set a handle to one of input, output or error stream of the process.
+        */
         void setStdHandle(HANDLE hdl, KCW_STREAM_TYPE type);
+        
+        /**
+        * when starting a process, you can start it in a paused state and resume() it later
+        */
         void setIsStartedAsPaused(bool isPaused);
+        
+        /**
+        * when
+        */
         void setExecutablePath(std::string execPath);
         void setStartupFlags(int stFlags);
 

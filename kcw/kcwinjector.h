@@ -4,15 +4,13 @@
 /**
 * @author Patrick Spendrin
 * @date 2011
+* @brief This class is used to abstract a dll injection
 */
 
 #include <windows.h>
 #include <string>
 
 class KcwInjector {
-    /**
-    * This class is used to abstract a dll injection
-    */
     public:
         /**
         * This function sets the destination process and its main thread.
@@ -20,7 +18,7 @@ class KcwInjector {
         void setDestinationProcess(HANDLE proc, HANDLE thread);
 
         /**
-        * This functions sets the path to the 
+        * This functions sets the path to the dll that should be injected
         */
         void setInjectionDll(std::string dllPath);
 

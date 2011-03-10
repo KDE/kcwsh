@@ -8,12 +8,16 @@ typedef void (*eventCallback)(void *obj);
 
 template <typename T> class KcwSharedMemory;
 
+/**
+* @author Patrick Spendrin
+* @date 2011
+*
+* @brief KcwEventLoop is the event loop base class which handles the event distribution.
+*
+* If you want to override the default application wide event handle for this loop, 
+* give it as parameter or set it before calling exec().
+*/
 class KcwEventLoop {
-    /**
-    * KcwEventLoop is the event loop base class which handles the event distribution.
-    * If you want to override the default Application wide event handle for this loop, 
-    * give it as parameter or set it before calling exec().
-    */
     public:
         KcwEventLoop(HANDLE eventHandle = NULL);
         virtual ~KcwEventLoop();
@@ -26,12 +30,12 @@ class KcwEventLoop {
         void addCallback(HANDLE hndl, eventCallback cllbck = NULL, void *callbackObject = NULL);
 
         /**
-        * call this function to run the event loop and to get notified 
+        * call this function to run the event loop and to get notified.
         */
         int exec();
 
         /**
-        * quit the event loop
+        * quit the event loop.
         */
         virtual void quit();
 
