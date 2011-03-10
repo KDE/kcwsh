@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <process.h>
 
+#include "kcwdebug.h"
+
 KcwSharedMemory<int> KcwThread::s_globalThreadCounter;
 
 // default value for exitEventHandle is NULL, in that case we need to set a system wide unique name for the event
@@ -10,15 +12,11 @@ KcwThread::KcwThread(HANDLE exitEventHandle) : KcwEventLoop() {
     if(exitEventHandle != NULL) {
         setExitEvent(exitEventHandle);
     } else {
-        char tmp[1024];
-        sprintf(tmp, "KcwThread-%i", getUniqueCounter());
-        setExitEvent(::CreateEventA(NULL, FALSE, FALSE, tmp));
+        WCHAR tmp[1024];
+        wsprintf(tmp, L"KcwThread-%i", getUniqueCounter());
+        setExitEvent(::CreateEvent(NULL, FALSE, FALSE, tmp));
     }
-#if 1
     m_thread = ::CreateThread(NULL, 0, monitorThreadStatic, reinterpret_cast<void*>(this), CREATE_SUSPENDED, NULL);
-#else
-	m_thread = (HANDLE)_beginthreadex(NULL, 0, monitorThreadStatic, reinterpret_cast<void*>(this), CREATE_SUSPENDED, NULL);
-#endif
 }
 
 // start the thread by resuming it
@@ -28,19 +26,15 @@ void KcwThread::start() {
 
 // a static helper function that is called by the operating system
 DWORD WINAPI KcwThread::monitorThreadStatic(LPVOID lpParameter) {
-    char tmp[1024];
     if(lpParameter == 0) {
-        sprintf(tmp, "monitorThreadStatic called with argument: %x", lpParameter);
-        OutputDebugStringA(tmp);
+        KcwDebug() << "monitorThreadStatic called with argument:" << lpParameter;
         return 0;
     }
     KcwThread* pKcwThread = reinterpret_cast<KcwThread*>(lpParameter);
-    sprintf(tmp, "monitorThreadStatic called with argument: %x", pKcwThread);
-    OutputDebugStringA(tmp);
+    KcwDebug() << "monitorThreadStatic called with argument:" << pKcwThread;
     
     const unsigned ret = pKcwThread->monitorThread();
-//	_endthreadex(0);
-	return ret;
+    return ret;
 }
 
 // an internal function used to access private data members (to signal the event)
@@ -81,8 +75,6 @@ int KcwThread::getUniqueCounter() {
     }
 
     // increase the counter by one, currently this is still not thread save
-    WCHAR tmp[1024];
-    wsprintf(tmp, L"opening global thread number %i", *s_globalThreadCounter);
-    OutputDebugString(tmp);
+    KcwDebug() << "opening global thread number" << *s_globalThreadCounter;
     return (*s_globalThreadCounter)++;
 }
