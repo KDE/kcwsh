@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+#include "kcw/kcwdebug.h"
+
 #define BUFSIZE 4096
 
 static bool g_debug;
@@ -15,7 +17,7 @@ SECURITY_ATTRIBUTES PipeHandler::s_saAttr = {   sizeof(SECURITY_ATTRIBUTES),
 
 PipeHandler::PipeHandler( STREAM_TYPE stt ) {
     if ( ! CreatePipe(&m_read, &m_write, &s_saAttr, 0) ) {
-        OutputDebugString(L"failed to create pipe!");
+        KcwDebug() << "failed to create pipe!";
         return;
     }
 
@@ -23,12 +25,12 @@ PipeHandler::PipeHandler( STREAM_TYPE stt ) {
     switch(stt) {
         case PipeHandler::STDIN_PIPE:
             if ( ! SetHandleInformation(m_write, HANDLE_FLAG_INHERIT, 0) )
-                OutputDebugString(L"not inherited");
+                KcwDebug() << "not inherited";
             break;
         case PipeHandler::STDOUT_PIPE:
         case PipeHandler::STDERR_PIPE:
             if ( ! SetHandleInformation(m_read, HANDLE_FLAG_INHERIT, 0) )
-                OutputDebugString(L"not inherited");
+                KcwDebug() << "not inherited";
             break;
     }
 }
@@ -50,23 +52,21 @@ InputPipe::InputPipe()
 }
 
 void InputPipe::setTargetProcessId(int processId) {
-	WCHAR tmp[1024];
-	m_targetPid = processId;
-    OutputDebugString(L"trying to open");
+    WCHAR tmp[1024];
+    m_targetPid = processId;
+    KcwDebug() << "trying to open";
     wsprintf(tmp, L"kcwsh-bufferSize-%x", m_targetPid);
     if(m_bufferSize.create(tmp, 2) != 0) {
         m_bufferSize.errorExit();
     };
-    OutputDebugString(tmp);
-    OutputDebugString(L"opened!");
+    KcwDebug() << tmp;
+    KcwDebug() << "opened!";
 }
 
 void InputPipe::parseEscapeSequence(char *esc, int length) {
-    WCHAR tmp[BUFSIZE];
     char d1;
     if(esc[0] == '[') {
-        wsprintf(tmp, L"got escape sequence with suffix '%c' data: '%s'", esc[length - 1], &esc[1]);
-        OutputDebugString(tmp);
+        KcwDebug() << "got escape sequence with suffix '" << esc[length - 1] << "' data: '" << &esc[1] << "'";
         switch(esc[length - 1]) {
             case 't':   {   // setting of the buffer size
                             std::istringstream i(&esc[1]);
@@ -82,7 +82,7 @@ void InputPipe::parseEscapeSequence(char *esc, int length) {
 }
 
 void InputPipe::setContentCheckEvent(HANDLE evnt) {
-	m_contentCheck = evnt;
+    m_contentCheck = evnt;
 }
 
 
@@ -96,22 +96,22 @@ void InputPipe::transferStdIn() {
     static int bufLength = 0;
     static int beginEsc = 0;
     static bool inEscapeSeq = false;
-	
-	OutputDebugString(L"calling transferStdIn");
+
+    KcwDebug() << "calling transferStdIn";
 
     dwResult = WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), 0);
     
     if(dwResult == WAIT_OBJECT_0) {
         bSuccess = ReadFile(GetStdHandle(STD_INPUT_HANDLE), chBuf, BUFSIZE, &dwRead, NULL);
-        wsprintf(tmp, L"read string: ");
+        KcwDebug() << "read string: ";
         for(unsigned i = 0; i < dwRead; i++) {
             buffer[bufLength + i] = chBuf[i];
-            wsprintf(tmp, L"%s %i", tmp, chBuf[i]);
+//            wsprintf(tmp, L"%s %i", tmp, chBuf[i]);
         }
         bufLength += dwRead;
-        OutputDebugString(tmp);
+ //       OutputDebugString(tmp);
         if(!bSuccess) {
-            std::cout << "no success reading from stdin" << std::endl;
+            KcwDebug() << "no success reading from stdin";
             return;
         }
 
@@ -120,7 +120,7 @@ void InputPipe::transferStdIn() {
             if(!inEscapeSeq && (buffer[j] == 0x1b || 
                (g_debug && j > 1 && buffer[j - 2] == '\\' && buffer[j - 1] == '\\' && buffer[j] == 'e'))) {
                 beginEsc = j + 1;
-//                OutputDebugString(L"inEscapeSequence");
+//                KcwDebug() << "inEscapeSequence";
                 inEscapeSeq = true;
             }
             
@@ -128,7 +128,7 @@ void InputPipe::transferStdIn() {
             if(inEscapeSeq && buffer[j] == 13) {
                 buffer[j] = 0;
                 parseEscapeSequence(&buffer[beginEsc], j - beginEsc);
-//                OutputDebugString(L"end inEscapeSequence");
+//                KcwDebug() << "end inEscapeSequence";
                 inEscapeSeq = false;
                 if(buffer[beginEsc - 1] != 0x1b) {
                     bufLength = beginEsc - 3;
@@ -146,10 +146,10 @@ void InputPipe::transferStdIn() {
                 chBuf[1] = 10;
                 dwRead = 2;
             }
-			SetEvent(m_contentCheck);
+            SetEvent(m_contentCheck);
             bSuccess = WriteFile(writeHandle(), chBuf, dwRead, &dwWritten, NULL);
             if(!bSuccess) {
-                std::cout << "no success writing stdin to client" << std::endl;
+                KcwDebug() << "no success writing stdin to client";
                 return;
             }
         }
