@@ -43,7 +43,6 @@ std::string getDefaultCmdInterpreter() {
 int main(int argc, char **argv) {
     std::vector<std::string> args(argv, argv + argc);
     KcwApp app;
-    char tmp[1024];
 
     std::cout << "kcwsh - Windows wrapper shell" << std::endl;
     for(std::vector<std::string>::const_iterator it = args.begin(); it != args.end(); it++) {
@@ -65,7 +64,7 @@ int main(int argc, char **argv) {
     in.start();
 
     std::cout << "Starting process: " << ((handler.start(in.readHandle(), GetStdHandle(STD_OUTPUT_HANDLE), GetStdHandle(STD_ERROR_HANDLE))) ? "succeeded" : "failed") << std::endl;
-	in.setContentCheckEvent(handler.contentCheckNotifyEvent());
+    in.setContentCheckEvent(handler.contentCheckNotifyEvent());
 
     app.exec();
     std::cout << "kcwsh quit" << std::endl;

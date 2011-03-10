@@ -29,7 +29,7 @@ std::string ClientHandler::getModulePath(HMODULE hModule) {
 }
 
 bool ClientHandler::start(HANDLE _stdin, HANDLE _stdout, HANDLE _stderr) {
-    char tmp[1024];
+//    char tmp[1024];
     m_process.setStdHandle(_stdin, KcwProcess::KCW_STDIN_HANDLE);
     m_process.setStdHandle(_stdout, KcwProcess::KCW_STDOUT_HANDLE);
     m_process.setStdHandle(_stderr, KcwProcess::KCW_STDERR_HANDLE);

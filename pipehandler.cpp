@@ -88,12 +88,12 @@ void InputPipe::setContentCheckEvent(HANDLE evnt) {
 
 // this needs to be moved into its own thread, otherwise it blocks to much
 void InputPipe::transferStdIn() {
-    DWORD dwRead = 0, dwWritten, dwResult, inputEvents, ret = 0;
+    DWORD dwRead = 0, dwWritten, dwResult, ret = 0;
     CHAR chBuf[BUFSIZE];
     WCHAR tmp[1024];
     BOOL bSuccess = FALSE;
     static char buffer[BUFSIZE];
-    static char bufLength = 0;
+    static int bufLength = 0;
     static int beginEsc = 0;
     static bool inEscapeSeq = false;
 	

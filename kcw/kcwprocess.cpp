@@ -49,7 +49,6 @@ void KcwProcess::setStartupFlags(int stFlags) {
 
 bool KcwProcess::start() {
     STARTUPINFOA siWow;
-    char tmp[1024];
 
     ::ZeroMemory(&siWow, sizeof(STARTUPINFO));
 
@@ -113,7 +112,7 @@ bool KcwProcess::start() {
 }
 
 bool KcwProcess::resume() {
-    return ResumeThread(m_procInfo->hThread);
+    return (ResumeThread(m_procInfo->hThread) == 1);
 }
 
 int KcwProcess::startupFlags() const {

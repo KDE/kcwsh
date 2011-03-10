@@ -112,7 +112,7 @@ int KcwEventLoop::exec() {
 //        EnterCriticalSection(&m_criticalSection);
         if(dwWaitRes == WAIT_TIMEOUT) continue;
 
-        for(unsigned i = 0; i < handleSize; i++) {
+        for(int i = 0; i < handleSize; i++) {
             if(dwWaitRes == WAIT_OBJECT_0 + i) {
                 if(m_callbacks[i] != NULL) {
 					wsprintf(tmp, L"calling callback for event #%i in process %i", i, dwProcessId);
