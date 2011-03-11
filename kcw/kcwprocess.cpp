@@ -5,6 +5,7 @@ KcwProcess::KcwProcess(std::string execPath)
     m_pid(-1),
     m_isRunning(false),
     m_procInfo(0),
+    m_startupFlags(CREATE_NEW_CONSOLE|CREATE_SUSPENDED),
     m_isStartedAsPaused(true) {
     m_stdHandles[KCW_STDIN_HANDLE] = 0;
     m_stdHandles[KCW_STDOUT_HANDLE] = 0;
@@ -15,6 +16,7 @@ KcwProcess::KcwProcess(int pid)
   : m_pid(pid),
     m_isRunning(true),
     m_procInfo(0),
+    m_startupFlags(CREATE_NEW_CONSOLE|CREATE_SUSPENDED),
     m_isStartedAsPaused(true) {
     m_stdHandles[KCW_STDIN_HANDLE] = 0;
     m_stdHandles[KCW_STDOUT_HANDLE] = 0;
@@ -25,6 +27,7 @@ KcwProcess::KcwProcess()
   : m_pid(-1),
     m_isRunning(false),
     m_procInfo(0),
+    m_startupFlags(CREATE_NEW_CONSOLE|CREATE_SUSPENDED),
     m_isStartedAsPaused(true) {
     m_stdHandles[KCW_STDIN_HANDLE] = 0;
     m_stdHandles[KCW_STDOUT_HANDLE] = 0;
@@ -71,7 +74,7 @@ bool KcwProcess::start() {
         siWow.hStdError = GetStdHandle(STD_ERROR_HANDLE);
     }*/
 //    siWow.dwFlags       = STARTF_USESTDHANDLES;
-    DWORD dwStartupFlags = CREATE_NEW_CONSOLE|CREATE_SUSPENDED;
+    DWORD dwStartupFlags = m_startupFlags;
 //    DWORD dwStartupFlags = CREATE_SUSPENDED;
 //  | DETACHED_PROCESS; // the detached process won't work
 //    siWow.dwFlags       |= STARTF_USESHOWWINDOW;
