@@ -1,0 +1,8 @@
+/** @mainpage kcw
+kcw is a small convenience library which contains wrapper classes for various tasks
+@see KcwDebug
+@see KcwThread
+@see KcwInjector
+@see KcwSharedMemory
+@see KcwProcess
+*/
