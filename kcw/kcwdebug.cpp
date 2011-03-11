@@ -5,20 +5,20 @@
 
 #include "kcwdebug.h"
 
+bool KcwDebug::s_enabled = true;
+
 KcwDebug::KcwDebug()
  :  m_maybeSpace( false ),
-    m_enabled( true ),
     m_stringptr( NULL )
 {}
 
 KcwDebug::KcwDebug(std::string* ptr)
  :  m_maybeSpace( false ),
-    m_enabled( true ),
     m_stringptr( ptr )
 {}
 
 KcwDebug::~KcwDebug() {
-    if(m_enabled) {
+    if(s_enabled) {
 //        std::cout << m_ss.str();
         OutputDebugStringA(m_ss.str().c_str());
     }
@@ -35,19 +35,23 @@ void KcwDebug::spaceIt() {
     m_maybeSpace = false;
 }
 
-KcwDebug& KcwDebug::operator<<(KcwDebug& (manipFunc)(KcwDebug &)) {
+KcwDebug& KcwDebug::operator<<(ManipFunc manipFunc) {
     return manipFunc(*this);
 }
 
 void KcwDebug::setEnabled(bool enable) {
-    m_enabled = enable;
+    s_enabled = enable;
 }
 
-bool KcwDebug::enabled() const {
-    return m_enabled;
+bool KcwDebug::enabled() {
+    return s_enabled;
 }
 
 // manipulation function
+/**
+* writes an end of line character (std::endl) either to the debug console or the string
+* used by the KcwDebug object.
+*/
 KcwDebug& endl(KcwDebug& os) {
     // before endl, we don't need a space
     os.m_maybeSpace = false;
