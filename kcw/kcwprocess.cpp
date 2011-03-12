@@ -2,9 +2,7 @@
 
 KcwProcess::KcwProcess(std::string execPath)
   : m_executablePath(execPath),
-    m_pid(-1),
     m_isRunning(false),
-    m_procInfo(0),
     m_startupFlags(CREATE_NEW_CONSOLE|CREATE_SUSPENDED),
     m_isStartedAsPaused(true) {
     m_stdHandles[KCW_STDIN_HANDLE] = 0;
@@ -12,10 +10,11 @@ KcwProcess::KcwProcess(std::string execPath)
     m_stdHandles[KCW_STDERR_HANDLE] = 0;
 }
 
+/**
+* @todo this is not usable so far.
+*/
 KcwProcess::KcwProcess(int pid)
-  : m_pid(pid),
-    m_isRunning(true),
-    m_procInfo(0),
+  : m_isRunning(true),
     m_startupFlags(CREATE_NEW_CONSOLE|CREATE_SUSPENDED),
     m_isStartedAsPaused(true) {
     m_stdHandles[KCW_STDIN_HANDLE] = 0;
@@ -24,9 +23,7 @@ KcwProcess::KcwProcess(int pid)
 }
 
 KcwProcess::KcwProcess()
-  : m_pid(-1),
-    m_isRunning(false),
-    m_procInfo(0),
+  : m_isRunning(false),
     m_startupFlags(CREATE_NEW_CONSOLE|CREATE_SUSPENDED),
     m_isStartedAsPaused(true) {
     m_stdHandles[KCW_STDIN_HANDLE] = 0;
@@ -80,7 +77,7 @@ bool KcwProcess::start() {
 //    siWow.dwFlags       |= STARTF_USESHOWWINDOW;
 //    siWow.wShowWindow   = SW_HIDE;
 
-    m_procInfo = new PROCESS_INFORMATION;
+    PROCESS_INFORMATION procInfo;
     if (!::CreateProcessA(
             NULL,
             const_cast<char*>(m_executablePath.c_str()),
@@ -91,7 +88,7 @@ bool KcwProcess::start() {
             NULL,
             NULL,
             &siWow,
-            m_procInfo))
+            &procInfo))
     {
         DWORD dw = GetLastError();
         WCHAR* lpMsgBuf = NULL;
@@ -110,12 +107,12 @@ bool KcwProcess::start() {
         LocalFree(lpMsgBuf);
         return false;
     }
-    m_pid = m_procInfo->dwProcessId;
+    m_threadRep.attachAppThread(procInfo.hProcess, procInfo.hThread);
     return true;
 }
 
 bool KcwProcess::resume() {
-    return (ResumeThread(m_procInfo->hThread) == 1);
+    return m_threadRep.resume();
 }
 
 int KcwProcess::startupFlags() const {
@@ -123,19 +120,24 @@ int KcwProcess::startupFlags() const {
 }
 
 HANDLE KcwProcess::process() const {
-    return m_procInfo->hProcess;
+    return m_threadRep.processHandle();
 }
 
 HANDLE KcwProcess::thread() const {
-    return m_procInfo->hThread;
+    return m_threadRep.threadHandle();
 }
+
+KcwThreadRep KcwProcess::threadRep() const {
+    return m_threadRep;
+}
+
 
 bool KcwProcess::isRunning() const {
     return m_isRunning;
 }
 
 int KcwProcess::pid() const {
-    return m_pid;
+    return GetProcessId(m_threadRep.processHandle());
 }
 
 std::string KcwProcess::executablePath() const {
