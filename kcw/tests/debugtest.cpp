@@ -1,6 +1,4 @@
 #include <string>
-#include <iostream>
-#include <cassert>
 #include <windows.h>
 
 #include "kcwdebug.h"
