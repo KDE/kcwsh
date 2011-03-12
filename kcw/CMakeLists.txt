@@ -15,6 +15,7 @@ set(kcw_HDRS
     kcwinjector.h
     kcwprocess.h
     kcwthread.h
+    kcwthreadrep.h
 )
 
 set(kcw_SRCS
@@ -24,6 +25,7 @@ set(kcw_SRCS
     kcwinjector.cpp
     kcwprocess.cpp
     kcwthread.cpp
+    kcwthreadrep.cpp
 )
 
 add_library(kcw STATIC ${kcw_SRCS})
