@@ -6,6 +6,7 @@
 #include "kcwdebug.h"
 
 bool KcwDebug::s_enabled = true;
+std::locale KcwDebug::s_loc("");
 
 KcwDebug::KcwDebug()
  :  m_maybeSpace( false ),
