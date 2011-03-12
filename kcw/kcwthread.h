@@ -5,6 +5,7 @@
 
 #include "kcwsharedmemory.h"
 #include "kcweventloop.h"
+#include "kcwthreadrep.h"
 
 /**
 * @author Patrick Spendrin
@@ -17,7 +18,7 @@
 * overload that function). The default implementation just starts an eventloop.
 */
 
-class KcwThread : public KcwEventLoop {
+class KcwThread : public KcwEventLoop, public KcwThreadRep {
     public:
         /**
         * Constructor for a thread object. If you want to override the default
