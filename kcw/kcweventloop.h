@@ -28,7 +28,8 @@ class KcwEventLoop {
         * calling addCallback after exec gives undefined behavior.
         */
         void addCallback(HANDLE hndl, eventCallback cllbck = NULL, void *callbackObject = NULL);
-
+        void addCallback(HANDLE hndl, HANDLE notification);
+    
         /**
         * call this function to run the event loop and to get notified.
         */
@@ -58,12 +59,14 @@ class KcwEventLoop {
         * returns the default event that is used to signal that the event loop should be quit.
         */
         virtual HANDLE exitEvent();
+
     private:
+        static void handleCallback(HANDLE obj);
         std::vector<eventCallback> m_callbacks;
         std::vector<void*> m_objects;
         std::vector<HANDLE> m_handles;
         int m_refreshInterval;
-		const int m_eventLoopId;
+        const int m_eventLoopId;
         HANDLE m_eventHandle;
         CRITICAL_SECTION m_criticalSection;
         static int getUniqueCounter();
@@ -74,4 +77,5 @@ class KcwEventLoop {
 static void name##static(void *obj) { reinterpret_cast<##class##*>(obj)->##name##(); }\
 void  name##();
 #define CB(name) &name##static
+#define HandleCB(handle)
 #endif /* kcweventloop_h */

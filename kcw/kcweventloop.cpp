@@ -28,6 +28,15 @@ KcwEventLoop::KcwEventLoop(HANDLE eventHandle)
 KcwEventLoop::~KcwEventLoop() {
 }
 
+void KcwEventLoop::addCallback(HANDLE hndl, HANDLE event) {
+    EnterCriticalSection(&m_criticalSection);
+    KcwDebug() << "add handle #" << (m_handles.size() + 1) <<  L"in eventLoop" << m_eventLoopId << L"value:" << hndl;
+    m_handles.push_back(hndl);
+    m_objects.push_back(event);
+    m_callbacks.push_back(handleCallback);
+    LeaveCriticalSection(&m_criticalSection);
+}
+
 void KcwEventLoop::addCallback(HANDLE hndl, eventCallback cllbck, void *callbackObject) {
     EnterCriticalSection(&m_criticalSection);
     KcwDebug() << "add handle #" << (m_handles.size() + 1) <<  L"in eventLoop" << m_eventLoopId << L"value:" << hndl;
@@ -128,6 +137,10 @@ int KcwEventLoop::exec() {
     }
     LeaveCriticalSection(&m_criticalSection);
     return 0;
+}
+
+void KcwEventLoop::handleCallback(HANDLE obj) {
+    SetEvent(obj);
 }
 
 int KcwEventLoop::getUniqueCounter() {
