@@ -15,10 +15,12 @@ class RemoteExec {
         
         // getters for the notification events
         static HANDLE bufferSizeNotification();
+        static HANDLE bufferNotification();
         static HANDLE contentNotification();
         static HANDLE exitEvent();
     private:
         static KcwSharedMemory<COORD> s_bufferSize;
+        static KcwSharedMemory<CHAR_INFO> s_buffer;
         static KcwSharedMemory<HANDLE> s_exitEvent;
         static KcwSharedMemory<HANDLE> s_contentCheck;
 };

@@ -2,6 +2,7 @@
 #include "kcw/kcwdebug.h"
 
 KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
+KcwSharedMemory<CHAR_INFO> RemoteExec::s_buffer;
 KcwSharedMemory<HANDLE> RemoteExec::s_exitEvent;
 KcwSharedMemory<HANDLE> RemoteExec::s_contentCheck;
 
@@ -16,6 +17,11 @@ void RemoteExec::openConnections() {
     wsprintf(tmp, L"kcwsh-bufferSize-%x", dwProcessId);
     if(s_bufferSize.open(tmp) != 0) {
         s_bufferSize.errorExit();
+    };
+
+    wsprintf(tmp, L"kcwsh-buffer-%x", dwProcessId);
+    if(s_buffer.open(tmp) != 0) {
+        s_buffer.errorExit();
     };
 
     wsprintf(tmp, L"kcwsh-exitEvent-%x", dwProcessId);
@@ -60,6 +66,7 @@ void RemoteExec::bufferSizeCallback(void *obj) {
 
 void RemoteExec::bufferContentCheck(void *obj) {
     DWORD dwHandleInfo;
+    static CHAR_INFO* pCurrentScreenBuffer = 0;
     HANDLE hStdOut = ::CreateFileA("CONOUT$",
                                 GENERIC_WRITE | GENERIC_READ,
                                 FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -87,6 +94,7 @@ void RemoteExec::bufferContentCheck(void *obj) {
 /*    DWORD                    dwScreenBufferOffset= 0;
 */
     CHAR_INFO* pScreenBuffer = new CHAR_INFO[dwScreenBufferSize];
+    if(pCurrentScreenBuffer == 0) pCurrentScreenBuffer = new CHAR_INFO[dwScreenBufferSize];
 
     COORD        coordBufferSize;
     // start coordinates for the buffer are always (0, 0) - we use offset
@@ -131,6 +139,12 @@ void RemoteExec::bufferContentCheck(void *obj) {
 //                sprintf(tmp, "%s%c", tmp, pScreenBuffer[i * coordBufferSize.X + j].Char.AsciiChar);
             }
 //            OutputDebugStringA(tmp);
+        }
+        bool textChanged = (::memcmp(pCurrentScreenBuffer, pScreenBuffer, dwScreenBufferSize*sizeof(CHAR_INFO)) != 0);
+        if(textChanged) {
+            ::CopyMemory(pCurrentScreenBuffer, pScreenBuffer, dwScreenBufferSize*sizeof(CHAR_INFO));
+            ::CopyMemory(s_buffer.data(), pScreenBuffer, dwScreenBufferSize*sizeof(CHAR_INFO));
+            s_buffer.notify();
         }
         KcwDebug() << "after: (" << srBuffer.Top << "," << srBuffer.Left << ") x (" << srBuffer.Bottom << "," << srBuffer.Right << ")";
         KcwDebug() << "end of Test output";
