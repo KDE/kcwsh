@@ -155,3 +155,29 @@ void InputPipe::transferStdIn() {
     }
 }
 
+OutputPipe::OutputPipe() {
+}
+
+DWORD OutputPipe::run() {
+    KcwDebug() << "OutputPipe::run";
+    return exec();
+}
+
+void OutputPipe::bufferChanged() {
+    KcwDebug() << "buffer changed!";
+}
+
+void OutputPipe::setTargetProcessId(int processId) {
+    WCHAR tmp[1024];
+    m_targetPid = processId;
+    KcwDebug() << "trying to create buffer";
+    wsprintf(tmp, L"kcwsh-buffer-%x", m_targetPid);
+    if(m_buffer.create(tmp, 1000*1000) != 0) {
+        m_buffer.errorExit();
+    };
+    
+    addCallback(m_buffer.notificationEvent(), CB(bufferChanged));
+    KcwDebug() << tmp;
+    KcwDebug() << "buffer opened!";
+}
+

@@ -22,6 +22,19 @@ class PipeHandler : public KcwThread {
         HANDLE m_write;
 };
 
+class OutputPipe : public KcwThread {
+    public:
+        OutputPipe();
+        DWORD run();
+        void setTargetProcessId(int processId);
+        KCW_CALLBACK(OutputPipe, bufferChanged)
+        
+    private:
+        KcwSharedMemory<CHAR_INFO> m_buffer;
+//        KcwSharedMemory<COORD> m_buffer;
+        int m_targetPid;
+};
+
 class InputPipe : public PipeHandler {
     public:
         InputPipe();
