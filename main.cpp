@@ -1,14 +1,11 @@
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
 
 #include <windows.h>
 #include <Shlobj.h>
 
 #include "clienthandler.h"
-#include "pipehandler.h"
-#include "kcwsharedmemory.h"
 #include "kcwapp.h"
 
 #define BUFSIZE 4096
@@ -58,13 +55,9 @@ int main(int argc, char **argv) {
 
     if(g_debug) std::cout << "enabled debug mode!" << std::endl;
     ClientHandler handler(getDefaultCmdInterpreter() + "\\cmd.exe");
-    InputPipe in;
-    app.addCallback(in.exitEvent());
     app.addCallback(handler.exitEvent());
-    in.start();
 
-    std::cout << "Starting process: " << ((handler.start(in.readHandle(), GetStdHandle(STD_OUTPUT_HANDLE), GetStdHandle(STD_ERROR_HANDLE))) ? "succeeded" : "failed") << std::endl;
-    in.setContentCheckEvent(handler.contentCheckNotifyEvent());
+    std::cout << "Starting process: " << ((handler.start()) ? "succeeded" : "failed") << std::endl;
 
     app.exec();
     std::cout << "kcwsh quit" << std::endl;
