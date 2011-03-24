@@ -10,24 +10,23 @@
 #include "kcwinjector.h"
 #include "kcwprocess.h"
 
+#include "pipehandler.h"
+
 class ClientHandler : public KcwThread {
     public:
         ClientHandler(std::string procname);
         ~ClientHandler();
 
-        bool start(HANDLE _stdin = 0, HANDLE _stdout = 0, HANDLE _stderr = 0);
-
-        HANDLE childProcess();
-        HANDLE contentCheckNotifyEvent();
-        DWORD processId() const;
+        bool start();
 
     private:
         std::string getModulePath(HMODULE hModule);
         KcwInjector m_injector;
         KcwProcess m_process;
+        
+        InputPipe m_inputPipe;
+        OutputPipe m_outputPipe;
 
-        PROCESS_INFORMATION m_procInfo;
-        std::string m_procName;
         KcwSharedMemory<HANDLE> m_sharedExitEvent;
         KcwSharedMemory<HANDLE> m_contentCheck;
 };
