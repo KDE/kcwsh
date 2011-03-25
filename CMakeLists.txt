@@ -35,7 +35,7 @@ set(kcwshhook_SRCS
     remoteExec.cpp
     dllmain.cpp
 )
-add_library(kcwshhook SHARED ${kcwshhook_SRCS})
+add_library(kcwshhook MODULE ${kcwshhook_SRCS})
 target_link_libraries(kcwshhook kcw)
 
 install(TARGETS kcwsh kcwshhook RUNTIME DESTINATION bin
