@@ -13,6 +13,7 @@ class ServerHandler : public KcwThread {
 
     private:
         KcwSharedMemory<HANDLE> m_sharedExitEvent;
+        HANDLE m_timer;
 };
 
 #endif /* serverhandler_h */
