@@ -1,4 +1,5 @@
 #include "kcwprocess.h"
+#include "kcwdebug.h"
 
 KcwProcess::KcwProcess(std::string execPath)
   : m_executablePath(execPath),
@@ -142,4 +143,8 @@ int KcwProcess::pid() const {
 
 std::string KcwProcess::executablePath() const {
     return m_executablePath;
+}
+
+void KcwProcess::quit() {
+    TerminateProcess(m_threadRep.processHandle(), 0);
 }

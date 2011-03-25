@@ -14,6 +14,7 @@
 #include <string>
 
 #include "kcwthreadrep.h"
+#include "kcweventloop.h"
 
 class KcwProcess {
     public:
@@ -70,6 +71,10 @@ class KcwProcess {
         */
         bool resume();
 
+        /**
+        * close the process again.
+        */
+        KCW_CALLBACK(KcwProcess, quit)
 
         /**
         * @return the flags used for startup. The default value is
