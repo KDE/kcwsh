@@ -12,7 +12,7 @@ int main(int argc, char**argv) {
 
     KcwInjector injector;
     injector.setDestinationProcess(proc.process(), proc.thread());
-    injector.setInjectionDll("testinjector.dll");
+    injector.setInjectionDll(L"testinjector.dll");
     if(!injector.inject()) {
         printf("failed to inject dll");
         return -1;

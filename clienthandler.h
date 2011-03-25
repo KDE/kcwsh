@@ -20,7 +20,7 @@ class ClientHandler : public KcwThread {
         bool start();
 
     private:
-        std::string getModulePath(HMODULE hModule);
+        std::wstring getModulePath(HMODULE hModule);
         KcwInjector m_injector;
         KcwProcess m_process;
         

@@ -7,7 +7,7 @@
 
 ClientHandler::ClientHandler( std::string procname )
     : m_process( procname ) {
-    m_injector.setInjectionDll(getModulePath(NULL) + "\\kcwshhook.dll");
+    m_injector.setInjectionDll(getModulePath(NULL) + L"\\kcwshhook.dll");
 }
 
 ClientHandler::~ClientHandler() {
@@ -15,13 +15,13 @@ ClientHandler::~ClientHandler() {
     KcwDebug() << "exiting clienthandler!";
 }
 
-std::string ClientHandler::getModulePath(HMODULE hModule) {
-    CHAR szModulePath[MAX_PATH + 1];
-    ::ZeroMemory(szModulePath, (MAX_PATH + 1));
+std::wstring ClientHandler::getModulePath(HMODULE hModule) {
+    WCHAR szModulePath[MAX_PATH + 1];
+    ::ZeroMemory(szModulePath, (MAX_PATH + 1)*sizeof(WCHAR));
 
-    ::GetModuleFileNameA(hModule, szModulePath, MAX_PATH);
+    ::GetModuleFileName(hModule, szModulePath, MAX_PATH);
 
-    std::string strPath(szModulePath);
+    std::wstring strPath(szModulePath);
 
     return strPath.substr(0, strPath.rfind('\\'));
 }
@@ -33,7 +33,7 @@ bool ClientHandler::start() {
 //    m_process.setStdHandle(_stderr, KcwProcess::KCW_STDERR_HANDLE);
     m_process.start();
 
-    wss << "kcwsh-exitEvent-" << m_process.pid();
+    wss << "kcwsh-exitEvent-" << m_process.pid() << std::endl;
     if(m_sharedExitEvent.create(wss.str().c_str()) != 0) {
         m_sharedExitEvent.errorExit();
     };
@@ -58,12 +58,13 @@ bool ClientHandler::start() {
 
     addCallback(m_process.process(), m_outputPipe.exitEvent());
     m_outputPipe.start();
+    KcwDebug() << "outputpipe started!";
     if (!m_injector.inject()) {
         KcwDebug() << "failed to inject dll!";
         return false;
     }
-
     KcwThread::start();
     m_process.resume();
+    KcwDebug() << "injector injected!";
     return true;
 }

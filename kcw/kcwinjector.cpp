@@ -1,11 +1,17 @@
 #include "kcwinjector.h"
+#include "kcwdebug.h"
+
+KcwInjector::KcwInjector()
+ : m_destProcess(NULL),
+   m_destThread(NULL) {
+}
 
 void KcwInjector::setDestinationProcess(HANDLE proc, HANDLE thread) {
     m_destProcess = proc;
     m_destThread = thread;
 }
 
-void KcwInjector::setInjectionDll(std::string dllPath) {
+void KcwInjector::setInjectionDll(std::wstring dllPath) {
     m_dllPath = dllPath;
 }
 
@@ -20,10 +26,20 @@ bool KcwInjector::inject() {
 
     ::ZeroMemory(&context, sizeof(CONTEXT));
 
-    BYTE* code = new BYTE[codeSize + m_dllPath.length() * sizeof(char) + 1];
+    if(m_destProcess == NULL || m_destThread == NULL) {
+        KcwDebug() << "destination process or thread are empty: process"
+                   << m_destProcess << "thread" << m_destThread;
+        return false;
+    }
 
-    memLen = (m_dllPath.length() * sizeof(char) + 1);
+    if (::GetFileAttributes(m_dllPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        KcwDebug() << "invalid file attributes for file" << m_dllPath.c_str();
+        return false;
+    }
 
+    BYTE* code = new BYTE[codeSize + (m_dllPath.length() + 1) * sizeof(wchar_t)];
+
+    memLen = (m_dllPath.length() + 1) * sizeof(wchar_t);
     CopyMemory(code + codeSize, m_dllPath.c_str(), memLen);
     memLen += codeSize;
 
@@ -31,7 +47,7 @@ bool KcwInjector::inject() {
     GetThreadContext(m_destThread, &context);
 
     mem = VirtualAllocEx(m_destProcess, NULL, memLen, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-    fnLoadLibrary = (UINT_PTR)GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA");
+    fnLoadLibrary = (UINT_PTR)GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "LoadLibraryW");
 
     union
     {

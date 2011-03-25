@@ -13,6 +13,11 @@
 class KcwInjector {
     public:
         /**
+        * Returns an empty injection object.
+        */
+        KcwInjector();
+
+        /**
         * This function sets the destination process and its main thread.
         */
         void setDestinationProcess(HANDLE proc, HANDLE thread);
@@ -20,7 +25,7 @@ class KcwInjector {
         /**
         * This functions sets the path to the dll that should be injected
         */
-        void setInjectionDll(std::string dllPath);
+        void setInjectionDll(std::wstring dllPath);
 
         /**
         * this function injects the dll
@@ -29,7 +34,7 @@ class KcwInjector {
     private:
         HANDLE m_destProcess;
         HANDLE m_destThread;
-        std::string m_dllPath;
+        std::wstring m_dllPath;
 
 };
 #endif /* kcwinjector_h */
