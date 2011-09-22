@@ -32,6 +32,8 @@ bool ClientHandler::start() {
 //    m_process.setStdHandle(_stdout, KcwProcess::KCW_STDOUT_HANDLE);
 //    m_process.setStdHandle(_stderr, KcwProcess::KCW_STDERR_HANDLE);
     m_process.start();
+    m_injector.setDestinationProcess(m_process.process(), m_process.thread());
+
 
     wss << "kcwsh-exitEvent-" << m_process.pid() << std::endl;
     if(m_sharedExitEvent.create(wss.str().c_str()) != 0) {
