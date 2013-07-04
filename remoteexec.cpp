@@ -1,5 +1,5 @@
 #include "remoteexec.h"
-#include "kcw/kcwdebug.h"
+#include <kcwdebug.h>
 
 KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
 KcwSharedMemory<CHAR_INFO> RemoteExec::s_buffer;

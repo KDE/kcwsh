@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "kcwdebug.h"
+#include <kcwdebug.h>
 
 
 ClientHandler::ClientHandler( std::string procname )

@@ -1,7 +1,7 @@
 #include <windows.h>
 #include "serverhandler.h"
 #include "remoteexec.h"
-#include "kcw/kcwdebug.h"
+#include <kcwdebug.h>
 
 ServerHandler::ServerHandler() : m_timer( CreateWaitableTimer(NULL, FALSE, NULL) ) {
 }

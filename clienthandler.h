@@ -23,7 +23,7 @@ class ClientHandler : public KcwThread {
         std::wstring getModulePath(HMODULE hModule);
         KcwInjector m_injector;
         KcwProcess m_process;
-        
+
         InputPipe m_inputPipe;
         OutputPipe m_outputPipe;
 

@@ -6,7 +6,7 @@
 #include <Shlobj.h>
 
 #include "clienthandler.h"
-#include "kcwapp.h"
+#include <kcwapp.h>
 
 #define BUFSIZE 4096
 

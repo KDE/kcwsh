@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-#include "kcw/kcwdebug.h"
+#include <kcwdebug.h>
 
 #define BUFSIZE 4096
 
