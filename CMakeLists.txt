@@ -39,7 +39,7 @@ add_library(kcwshhook MODULE ${kcwshhook_SRCS})
 target_link_libraries(kcwshhook ${KCW_LIBRARIES})
 
 install(TARGETS kcwsh kcwshhook RUNTIME DESTINATION bin
-                                LIBRARY DESTINATION lib
+                                LIBRARY DESTINATION bin
                                 ARCHIVE DESTINATION lib)
 
 if(BUILD_TESTS)
