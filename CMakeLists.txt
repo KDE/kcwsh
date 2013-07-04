@@ -15,12 +15,12 @@ find_package(Qt4)
 # this is my package I am allowed to do what I want!
 add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE)
 
-string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+#string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+#string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
-add_subdirectory(kcw)
+find_package(Kcw REQUIRED)
 
-include_directories(kcw)
+include_directories(${KCW_INCLUDE_DIRS})
 
 set(kcwsh_SRCS
     clienthandler.cpp
@@ -28,7 +28,7 @@ set(kcwsh_SRCS
     main.cpp
 )
 add_executable(kcwsh ${kcwsh_SRCS})
-target_link_libraries(kcwsh kcw)
+target_link_libraries(kcwsh ${KCW_LIBRARIES})
 
 set(kcwshhook_SRCS
     serverhandler.cpp
@@ -36,7 +36,7 @@ set(kcwshhook_SRCS
     dllmain.cpp
 )
 add_library(kcwshhook MODULE ${kcwshhook_SRCS})
-target_link_libraries(kcwshhook kcw)
+target_link_libraries(kcwshhook ${KCW_LIBRARIES})
 
 install(TARGETS kcwsh kcwshhook RUNTIME DESTINATION bin
                                 LIBRARY DESTINATION lib
