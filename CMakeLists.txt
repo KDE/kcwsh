@@ -43,7 +43,7 @@ install(TARGETS kcwsh kcwshhook RUNTIME DESTINATION bin
                                 ARCHIVE DESTINATION lib)
 
 if(BUILD_TESTS)
-    add_subdirectory(tests)
+#    add_subdirectory(tests)
 endif(BUILD_TESTS)
 
 if(BUILD_GUI_TEST AND QT4_FOUND)
