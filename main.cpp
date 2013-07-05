@@ -7,6 +7,7 @@
 
 #include "clienthandler.h"
 #include <kcwapp.h>
+#include <kcwdebug.h>
 
 #define BUFSIZE 4096
 
@@ -58,8 +59,8 @@ int main(int argc, char **argv) {
     app.addCallback(handler.exitEvent());
 
     std::cout << "Starting process: " << ((handler.start()) ? "succeeded" : "failed") << std::endl;
-
     app.exec();
+    KcwDebug() << "kcwsh quit";
     std::cout << "kcwsh quit" << std::endl;
     return 0;
 }
