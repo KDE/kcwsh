@@ -11,6 +11,7 @@ ClientHandler::ClientHandler( std::string procname )
 }
 
 ClientHandler::~ClientHandler() {
+    m_process.quit();
     quit();
     KcwDebug() << "exiting clienthandler!";
 }
@@ -28,45 +29,47 @@ std::wstring ClientHandler::getModulePath(HMODULE hModule) {
 
 bool ClientHandler::start() {
     std::wstringstream wss;
-//    m_process.setStdHandle(_stdin, KcwProcess::KCW_STDIN_HANDLE);
-//    m_process.setStdHandle(_stdout, KcwProcess::KCW_STDOUT_HANDLE);
-//    m_process.setStdHandle(_stderr, KcwProcess::KCW_STDERR_HANDLE);
+
     m_process.start();
     m_injector.setDestinationProcess(m_process.process(), m_process.thread());
 
 
     wss << "kcwsh-exitEvent-" << m_process.pid() << std::endl;
+     KcwDebug() << "creating exitEvent: " << wss.str();
     if(m_sharedExitEvent.create(wss.str().c_str()) != 0) {
+        KcwDebug() << "could not create sharedExitEvent";
         m_sharedExitEvent.errorExit();
     };
 
-    wss.flush();
-    wss << "kcwsh-contentCheck-" << m_process.pid();
-    KcwDebug() << wss.str();
+    wss.str(L"");
+    wss << "kcwsh-contentCheck-" << m_process.pid() << std::endl;
+//     KcwDebug() << "creating contentCheck:" << wss.str();
     if(m_contentCheck.create(wss.str().c_str()) != 0) {
+        KcwDebug() << "could not create contentCheck";
         m_contentCheck.errorExit();
     };
 
     // before we can use the handle in the client process, we need to duplicate it
-    ::DuplicateHandle(  GetCurrentProcess(),
+/*    ::DuplicateHandle(  GetCurrentProcess(),
                         exitEvent(),
                         m_process.process(),
                         &(*m_sharedExitEvent),
                         0,
                         FALSE,
-                        DUPLICATE_SAME_ACCESS);
+                        DUPLICATE_SAME_ACCESS);*/
 
     addCallback(m_process.process());
 
-    addCallback(m_process.process(), m_outputPipe.exitEvent());
-    m_outputPipe.start();
-    KcwDebug() << "outputpipe started!";
+//    addCallback(m_process.process(), m_outputPipe.exitEvent());
+//    m_outputPipe.start();
+//    KcwDebug() << "outputpipe started!";
     if (!m_injector.inject()) {
         KcwDebug() << "failed to inject dll!";
         return false;
     }
+    KcwDebug() << "injector injected!";
     KcwThread::start();
     m_process.resume();
-    KcwDebug() << "injector injected!";
+    KcwDebug() << "thread started!";
     return true;
 }

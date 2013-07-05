@@ -1,8 +1,8 @@
 #include "remoteexec.h"
 #include <kcwdebug.h>
 
-KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
-KcwSharedMemory<CHAR_INFO> RemoteExec::s_buffer;
+//KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
+//KcwSharedMemory<CHAR_INFO> RemoteExec::s_buffer;
 KcwSharedMemory<HANDLE> RemoteExec::s_exitEvent;
 KcwSharedMemory<HANDLE> RemoteExec::s_contentCheck;
 
@@ -12,32 +12,40 @@ RemoteExec::RemoteExec() {
 // open the shared memories
 void RemoteExec::openConnections() {
     WCHAR tmp[1024];
+    ZeroMemory(tmp, 1024);
     DWORD dwProcessId = ::GetCurrentProcessId();
 
-    wsprintf(tmp, L"kcwsh-bufferSize-%x", dwProcessId);
+    KcwDebug() << "opening connections";
+
+/*    wsprintf(tmp, L"kcwsh-bufferSize-%x", dwProcessId);
     if(s_bufferSize.open(tmp) != 0) {
+        KcwDebug() << "failed to open bufferSize";
         s_bufferSize.errorExit();
     };
 
     wsprintf(tmp, L"kcwsh-buffer-%x", dwProcessId);
     if(s_buffer.open(tmp) != 0) {
+        KcwDebug() << "failed to open buffer";
         s_buffer.errorExit();
     };
-
-    wsprintf(tmp, L"kcwsh-exitEvent-%x", dwProcessId);
+*/
+    wsprintf(tmp, L"kcwsh-exitEvent-%i", dwProcessId);
+    KcwDebug() << "trying to open exitEvent:" << (const wchar_t*)tmp;
     if(s_exitEvent.open(tmp) != 0) {
-        s_exitEvent.errorExit();
+        KcwDebug() << "failed to open exitEvent:" << (const wchar_t*)tmp;
+//        s_exitEvent.errorExit();
     };
 
-    wsprintf(tmp, L"kcwsh-contentCheck-%x", dwProcessId);
+    wsprintf(tmp, L"kcwsh-contentCheck-%i", dwProcessId);
     if(s_contentCheck.open(tmp) != 0) {
-        s_contentCheck.errorExit();
+        KcwDebug() << "failed to open contentCheck:" << (const wchar_t*)tmp;
+//        s_contentCheck.errorExit();
     };
 
 }
 
 // all the static callback functions
-void RemoteExec::bufferSizeCallback(void *obj) {
+/*void RemoteExec::bufferSizeCallback(void *obj) {
     BOOL bSuccess = FALSE;
     HANDLE hStdOut;
     COORD   finalCoordBufferSize;
@@ -63,9 +71,10 @@ void RemoteExec::bufferSizeCallback(void *obj) {
     // if new buffer size is > than old one, we need to resize the buffer first
     ::SetConsoleScreenBufferSize(hStdOut, finalCoordBufferSize);
 }
+*/
 
 void RemoteExec::bufferContentCheck(void *obj) {
-    DWORD dwHandleInfo;
+/*    DWORD dwHandleInfo;
     static CHAR_INFO* pCurrentScreenBuffer = 0;
     HANDLE hStdOut = ::CreateFileA("CONOUT$",
                                 GENERIC_WRITE | GENERIC_READ,
@@ -91,8 +100,8 @@ void RemoteExec::bufferContentCheck(void *obj) {
 
     // do console output buffer reading
     DWORD                    dwScreenBufferSize    = coordConsoleSize.X * coordConsoleSize.Y;
-/*    DWORD                    dwScreenBufferOffset= 0;
-*/
+//    DWORD                    dwScreenBufferOffset= 0;
+
     CHAR_INFO* pScreenBuffer = new CHAR_INFO[dwScreenBufferSize];
     if(pCurrentScreenBuffer == 0) pCurrentScreenBuffer = new CHAR_INFO[dwScreenBufferSize];
 
@@ -150,7 +159,7 @@ void RemoteExec::bufferContentCheck(void *obj) {
         KcwDebug() << "end of Test output";
     } else {
         KcwDebug() << "failed to read console output buffer!";
-    }
+    }*/
 
 //        srBuffer.Top        = srBuffer.Top + coordBufferSize.Y;
 //        srBuffer.Bottom        = srBuffer.Bottom + coordBufferSize.Y;
@@ -175,19 +184,19 @@ void RemoteExec::bufferContentCheck(void *obj) {
 //    SharedMemoryLock consoleInfoLock(m_consoleInfo);
 //    SharedMemoryLock bufferLock(m_consoleBuffer);
 
-/*    bool textChanged = (::memcmp(m_consoleBuffer.Get(), pScreenBuffer.get(), m_dwScreenBufferSize*sizeof(CHAR_INFO)) != 0);
+//    bool textChanged = (::memcmp(m_consoleBuffer.Get(), pScreenBuffer.get(), m_dwScreenBufferSize*sizeof(CHAR_INFO)) != 0);
 
-    if ((::memcmp(&m_consoleInfo->csbi, &csbiConsole, sizeof(CONSOLE_SCREEN_BUFFER_INFO)) != 0) ||
-        (m_dwScreenBufferSize != dwScreenBufferSize) ||
-        textChanged)*/
+//    if ((::memcmp(&m_consoleInfo->csbi, &csbiConsole, sizeof(CONSOLE_SCREEN_BUFFER_INFO)) != 0) ||
+//        (m_dwScreenBufferSize != dwScreenBufferSize) ||
+//        textChanged)
 //    static std::string buffercontents;
 }
-
+/*
 // getters for the notification events
 HANDLE RemoteExec::bufferSizeNotification() {
     return s_bufferSize.notificationEvent();
 }
-
+*/
 HANDLE RemoteExec::contentNotification() {
     return s_contentCheck.notificationEvent();
 }

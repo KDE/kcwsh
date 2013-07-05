@@ -24,8 +24,8 @@ class ClientHandler : public KcwThread {
         KcwInjector m_injector;
         KcwProcess m_process;
 
-        InputPipe m_inputPipe;
-        OutputPipe m_outputPipe;
+//        InputPipe m_inputPipe;
+//        OutputPipe m_outputPipe;
 
         KcwSharedMemory<HANDLE> m_sharedExitEvent;
         KcwSharedMemory<HANDLE> m_contentCheck;

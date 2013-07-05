@@ -13,7 +13,7 @@ void ServerHandler::connect() {
     setExitEvent(RemoteExec::exitEvent());
 
     // add application local callbacks
-    addCallback(RemoteExec::bufferSizeNotification(), &RemoteExec::bufferSizeCallback, this);
+//    addCallback(RemoteExec::bufferSizeNotification(), &RemoteExec::bufferSizeCallback, this);
     addCallback(m_timer, &RemoteExec::bufferContentCheck, this);
     LARGE_INTEGER li;
 
