@@ -71,7 +71,7 @@ void InputPipe::parseEscapeSequence(char *esc, int length) {
             case 't':   {   // setting of the buffer size
                             std::istringstream i(&esc[1]);
                             if( i >> m_bufferSize->X >> d1 >> m_bufferSize->Y ){
-                                m_bufferSize.notify();
+//                                m_bufferSize.notify();
                             }
                             break;
                         }
@@ -176,7 +176,7 @@ void OutputPipe::setTargetProcessId(int processId) {
         m_buffer.errorExit();
     };
     
-    addCallback(m_buffer.notificationEvent(), CB(bufferChanged));
+//    addCallback(m_buffer.notificationEvent(), CB(bufferChanged));
     KcwDebug() << tmp;
     KcwDebug() << "buffer opened!";
 }

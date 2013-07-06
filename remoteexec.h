@@ -1,7 +1,8 @@
 #ifndef remoteexec_h
 #define remoteexec_h
 
-#include "kcwsharedmemory.h"
+#include <kcwsharedmemory.h>
+#include <kcwnotifier.h>
 
 class RemoteExec {
     public:
@@ -21,7 +22,7 @@ class RemoteExec {
     private:
 //        static KcwSharedMemory<COORD> s_bufferSize;
 //        static KcwSharedMemory<CHAR_INFO> s_buffer;
-        static KcwSharedMemory<HANDLE> s_exitEvent;
+        static KcwNotifier s_exitEvent;
         static KcwSharedMemory<HANDLE> s_contentCheck;
 };
 

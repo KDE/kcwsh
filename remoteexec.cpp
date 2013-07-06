@@ -3,7 +3,7 @@
 
 //KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
 //KcwSharedMemory<CHAR_INFO> RemoteExec::s_buffer;
-KcwSharedMemory<HANDLE> RemoteExec::s_exitEvent;
+KcwNotifier RemoteExec::s_exitEvent;
 KcwSharedMemory<HANDLE> RemoteExec::s_contentCheck;
 
 RemoteExec::RemoteExec() {
@@ -33,7 +33,6 @@ void RemoteExec::openConnections() {
     KcwDebug() << "trying to open exitEvent:" << (const wchar_t*)tmp;
     if(s_exitEvent.open(tmp) != 0) {
         KcwDebug() << "failed to open exitEvent:" << (const wchar_t*)tmp;
-//        s_exitEvent.errorExit();
     };
 
     wsprintf(tmp, L"kcwsh-contentCheck-%i", dwProcessId);
@@ -198,9 +197,10 @@ HANDLE RemoteExec::bufferSizeNotification() {
 }
 */
 HANDLE RemoteExec::contentNotification() {
-    return s_contentCheck.notificationEvent();
+//    return s_contentCheck.notificationEvent();
+    return NULL;
 }
 
 HANDLE RemoteExec::exitEvent() {
-    return *s_exitEvent;
+    return s_exitEvent.handle();
 }
