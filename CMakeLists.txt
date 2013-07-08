@@ -13,7 +13,7 @@ endif(BUILD_TESTS)
 find_package(Qt4)
 
 # this is my package I am allowed to do what I want!
-add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE -wd4275 -wd4251)
 
 #string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 #string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -29,18 +29,24 @@ set(kcwsh_HDRS
 set(kcwsh_SRCS
     dllmain.cpp
     terminal.cpp
+    inputwriter.cpp
+    inputreader.cpp
+    hooks.cpp
 )
 
 set(kcwsh_bin_SRCS
+#    inputreader.cpp
     main.cpp
 )
 
-add_library(kcwsh ${kcwsh_SRCS})
+# kcwsh library always needs to be shared
+add_library(kcwsh SHARED ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
 
 # as a test example use this little binary
 add_executable(kcwsh_bin ${kcwsh_bin_SRCS})
-target_link_libraries(kcwsh_bin ${KCW_LIBRARIES})
+target_link_libraries(kcwsh_bin ${KCW_LIBRARIES} kcwsh)
+set_target_properties(kcwsh_bin PROPERTIES RUNTIME_OUTPUT_NAME kcwsh)
 
 install(TARGETS kcwsh kcwsh_bin RUNTIME DESTINATION bin
                                 LIBRARY DESTINATION bin
