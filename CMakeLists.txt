@@ -22,8 +22,13 @@ find_package(Kcw REQUIRED)
 
 include_directories(${KCW_INCLUDE_DIRS})
 
+set(kcwsh_HDRS
+    terminal.h
+)
+
 set(kcwsh_SRCS
     dllmain.cpp
+    terminal.cpp
 )
 
 set(kcwsh_bin_SRCS
@@ -33,7 +38,7 @@ set(kcwsh_bin_SRCS
 add_library(kcwsh ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
 
-# as a test example use this little script
+# as a test example use this little binary
 add_executable(kcwsh_bin ${kcwsh_bin_SRCS})
 target_link_libraries(kcwsh_bin ${KCW_LIBRARIES})
 
