@@ -1,21 +1,18 @@
-#include <cstdio>
 #include <windows.h>
 
-#include "remoteexec.h"
+#include <kcwdebug.h>
 
-//static ServerHandler srv;
+HINSTANCE s_module = 0;
 
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved */ ) {
+    s_module = hInstance;
     switch(dwReason) {
         case DLL_PROCESS_ATTACH:
         {
-            RemoteExec::openConnections();
-//            srv.connect();
             break;
         }
         case DLL_PROCESS_DETACH:
         {
-//            srv.disconnect();
             break;
         }
     };
