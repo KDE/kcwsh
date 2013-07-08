@@ -6,7 +6,7 @@
 #include "kcwsh_export.h"
 
 namespace KcwSH {
-class Terminal  {
+class KCWSH_EXPORT Terminal  {
     public:
         Terminal();
 
@@ -15,7 +15,7 @@ class Terminal  {
 
         bool open();
     private:
-        m_cmd;
+        std::wstring m_cmd;
 };
 };
 #endif /* kcwsh_terminal */
