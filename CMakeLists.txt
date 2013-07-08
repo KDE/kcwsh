@@ -23,22 +23,21 @@ find_package(Kcw REQUIRED)
 include_directories(${KCW_INCLUDE_DIRS})
 
 set(kcwsh_SRCS
-    clienthandler.cpp
-    pipehandler.cpp
-    main.cpp
-)
-add_executable(kcwsh ${kcwsh_SRCS})
-target_link_libraries(kcwsh ${KCW_LIBRARIES})
-
-set(kcwshhook_SRCS
-    serverhandler.cpp
-    remoteExec.cpp
     dllmain.cpp
 )
-add_library(kcwshhook MODULE ${kcwshhook_SRCS})
-target_link_libraries(kcwshhook ${KCW_LIBRARIES})
 
-install(TARGETS kcwsh kcwshhook RUNTIME DESTINATION bin
+set(kcwsh_bin_SRCS
+    main.cpp
+)
+
+add_library(kcwsh ${kcwsh_SRCS})
+target_link_libraries(kcwsh ${KCW_LIBRARIES})
+
+# as a test example use this little script
+add_executable(kcwsh_bin ${kcwsh_bin_SRCS})
+target_link_libraries(kcwsh_bin ${KCW_LIBRARIES})
+
+install(TARGETS kcwsh kcwsh_bin RUNTIME DESTINATION bin
                                 LIBRARY DESTINATION bin
                                 ARCHIVE DESTINATION lib)
 

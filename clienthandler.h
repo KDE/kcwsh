@@ -5,12 +5,14 @@
 
 #include <windows.h>
 
-#include "kcwsharedmemory.h"
-#include "kcwthread.h"
-#include "kcwinjector.h"
-#include "kcwprocess.h"
+#include <kcwsharedmemory.h>
+#include <kcwthread.h>
+#include <kcwinjector.h>
+#include <kcwprocess.h>
+#include <kcwnotifier.h>
 
 #include "pipehandler.h"
+#include "inputreader.h"
 
 class ClientHandler : public KcwThread {
     public:
@@ -24,11 +26,10 @@ class ClientHandler : public KcwThread {
         KcwInjector m_injector;
         KcwProcess m_process;
 
-//        InputPipe m_inputPipe;
-//        OutputPipe m_outputPipe;
+        KcwNotifier m_sharedExitEvent;
+//        KcwSharedMemory<HANDLE> m_contentCheck;
 
-        KcwSharedMemory<HANDLE> m_sharedExitEvent;
-        KcwSharedMemory<HANDLE> m_contentCheck;
+        InputReader m_input;
 };
 
 #endif /* clienthandler_h */

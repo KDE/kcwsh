@@ -4,6 +4,8 @@
 #include <kcwsharedmemory.h>
 #include <kcwnotifier.h>
 
+#include "inputwriter.h"
+
 class RemoteExec {
     public:
         RemoteExec();
@@ -12,7 +14,7 @@ class RemoteExec {
         
         // all the static callback functions
 //        static void bufferSizeCallback(void *obj);
-        static void bufferContentCheck(void *obj);
+//        static void bufferContentCheck(void *obj);
         
         // getters for the notification events
 //        static HANDLE bufferSizeNotification();
@@ -24,6 +26,9 @@ class RemoteExec {
 //        static KcwSharedMemory<CHAR_INFO> s_buffer;
         static KcwNotifier s_exitEvent;
         static KcwSharedMemory<HANDLE> s_contentCheck;
+        static KcwSharedMemory<HWND> s_consoleWindow;
+        
+        static InputWriter s_inputWriter;
 };
 
 #endif /* remoteexec_h */

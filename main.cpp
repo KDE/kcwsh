@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <Shlobj.h>
 
-#include "clienthandler.h"
+// #include "clienthandler.h"
 #include <kcwapp.h>
 #include <kcwdebug.h>
 
@@ -55,10 +55,10 @@ int main(int argc, char **argv) {
     }
 
     if(g_debug) std::cout << "enabled debug mode!" << std::endl;
-    ClientHandler handler(getDefaultCmdInterpreter() + "\\cmd.exe");
-    app.addCallback(handler.exitEvent());
-
-    std::cout << "Starting process: " << ((handler.start()) ? "succeeded" : "failed") << std::endl;
+//     ClientHandler handler(getDefaultCmdInterpreter() + "\\cmd.exe");
+//     app.addCallback(handler.exitEvent());
+// 
+//     std::cout << "Starting process: " << ((handler.start()) ? "succeeded" : "failed") << std::endl;
     app.exec();
     KcwDebug() << "kcwsh quit";
     std::cout << "kcwsh quit" << std::endl;

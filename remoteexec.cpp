@@ -1,16 +1,32 @@
 #include "remoteexec.h"
 #include <kcwdebug.h>
 
+#include <cctype>
+
 //KcwSharedMemory<COORD> RemoteExec::s_bufferSize;
 //KcwSharedMemory<CHAR_INFO> RemoteExec::s_buffer;
 KcwNotifier RemoteExec::s_exitEvent;
-KcwSharedMemory<HANDLE> RemoteExec::s_contentCheck;
+InputWriter RemoteExec::s_inputWriter;
+KcwSharedMemory<HWND> RemoteExec::s_consoleWindow;
+
+static HANDLE myThreadHandle = NULL;
+
+__declspec(dllexport) void startMyThread() {
+    ResumeThread(myThreadHandle);
+}
+
+extern "C" __declspec(dllexport) DWORD WINAPI myThreadProc(LPVOID lpParameter) {
+    KcwDebug() << "calling myThreadProc";
+//    reinterpret_cast<InputWriter*>(lpParameter)->exec();
+    return 0;
+}
 
 RemoteExec::RemoteExec() {
 }
 
 // open the shared memories
 void RemoteExec::openConnections() {
+    std::wstringstream wss;
     WCHAR tmp[1024];
     ZeroMemory(tmp, 1024);
     DWORD dwProcessId = ::GetCurrentProcessId();
@@ -35,12 +51,41 @@ void RemoteExec::openConnections() {
         KcwDebug() << "failed to open exitEvent:" << (const wchar_t*)tmp;
     };
 
-    wsprintf(tmp, L"kcwsh-contentCheck-%i", dwProcessId);
-    if(s_contentCheck.open(tmp) != 0) {
-        KcwDebug() << "failed to open contentCheck:" << (const wchar_t*)tmp;
+/*    wsprintf(tmp, L"kcwsh-consoleWindow-%i", dwProcessId);
+    if(s_consoleWindow.open(tmp) != 0) {
+        KcwDebug() << "failed to open consoleWindow:" << (const wchar_t*)tmp;
 //        s_contentCheck.errorExit();
-    };
+    };*/
+    s_inputWriter.init();
+    
+//     HANDLE myThread = CreateThread(NULL, 0, myThreadProc, &s_inputWriter, CREATE_SUSPENDED, NULL);
+    //s_inputWriter.exec();
 
+    HWND hwnd = GetConsoleWindow();
+    *s_consoleWindow = hwnd;
+
+/*    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
+    DWORD fdwMode, oldMode;
+    GetConsoleMode(hStdin, &oldMode);
+    fdwMode = oldMode;
+    fdwMode ^= ENABLE_LINE_INPUT;
+    fdwMode ^= ENABLE_MOUSE_INPUT;
+    SetConsoleMode(hStdin, fdwMode);
+    INPUT_RECORD recs[10];
+    ZeroMemory(recs, sizeof(INPUT_RECORD)*10);
+    int num, cnt = 0;
+    while(cnt < 0) {
+        ReadConsoleInput(hStdin, recs, 1, (DWORD*)&num);
+        if(recs[0].EventType != KEY_EVENT) continue;
+        if(recs[0].Event.KeyEvent.bKeyDown) {
+            KcwDebug() << (char)recs[0].Event.KeyEvent.uChar.AsciiChar
+                       << (int)recs[0].Event.KeyEvent.wRepeatCount
+                       << (int)recs[0].Event.KeyEvent.wVirtualKeyCode
+                       << (int)recs[0].Event.KeyEvent.wVirtualScanCode;
+        }
+        cnt += num;
+    }*/
 }
 
 // all the static callback functions
