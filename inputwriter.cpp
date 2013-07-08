@@ -3,19 +3,20 @@
 
 #include <kcwdebug.h>
 
-InputWriter::InputWriter() : KcwEventLoop() {
+InputWriter::InputWriter()
+: m_consoleHdl(GetStdHandle(STD_INPUT_HANDLE))
+, KcwEventLoop() {
 }
 
 void InputWriter::writeData() {
-//     const char* input = "dir\n";
-    DWORD num = 0, len = 4;
-/*    for(int i = 0; i < len; i++) {
-        char vkc = toupper(input[i]);
-        if(input[i] == '\n') vkc = VK_RETURN;
-        PostMessage(hwnd, WM_KEYDOWN, vkc, 0x001C0001);
-        PostMessage(hwnd, WM_KEYUP, vkc, 0xC01C0001);
-    };*/
-    KcwDebug() << "we wrote" << num << "events.";
+    DWORD num = 0, len = *m_inputSize.data();
+    INPUT_RECORD *field = new INPUT_RECORD[len];
+
+    memcpy(field, m_input.data(), len * sizeof(INPUT_RECORD));
+
+    WriteConsoleInput(m_consoleHdl, field, len, &num);
+//     KcwDebug() << "we wrote" << num << "events.";
+    delete[] field;
     m_readyRead.notify();
 }
 
