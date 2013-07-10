@@ -7,21 +7,25 @@
 #include <kcwnotifier.h>
 #include <kcwsharedmemory.h>
 
-class InputReader : public KcwThread {
+#include "kcwsh_export.h"
+
+class KcwProcess;
+
+namespace KcwSH {
+
+class KCWSH_EXPORT InputReader : public KcwThread {
     public:
         InputReader();
-        void setProcess(int pid);
-        void init(HANDLE _stdIn);
-
-        KCW_CALLBACK(InputReader, transferData)
-    private:
-        int m_pid;
+        void setProcess(KcwProcess *proc);
+        KcwProcess* process();
+        virtual void init();
+    protected:
+        KcwProcess* m_process;
         KcwNotifier m_readyRead;
         KcwNotifier m_bytesWritten;
         KcwSharedMemory<INPUT_RECORD> m_input;
         KcwSharedMemory<int> m_inputSize;
-        int m_bufferSize;
-
-        HANDLE m_localConsole;
+        int m_cacheSize;
+};
 };
 #endif /* inputreader */
