@@ -8,9 +8,12 @@
 #include <kcwnotifier.h>
 
 #include "kcwsh_export.h"
-#include "inputreader.h"
 
 namespace KcwSH {
+
+class InputReader;
+class OutputWriter;
+
 class KCWSH_EXPORT Terminal : public KcwThread {
     public:
         Terminal();
@@ -19,13 +22,17 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         void setCmd(const std::string& _cmd);
         std::string cmd() const;
 
+        void setInputReader(InputReader* reader);
+        void setOutputWriter(OutputWriter* writer);
         DWORD run();
     private:
         std::wstring getModulePath(HMODULE hModule);
 
-        InputReader m_inputReader;
+        InputReader *m_inputReader;
+        OutputWriter *m_outputWriter;
         KcwProcess m_process;
         KcwNotifier m_exitEvent;
+        KcwNotifier m_setupEvent;
 };
 };
 #endif /* kcwsh_terminal */
