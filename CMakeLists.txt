@@ -31,11 +31,14 @@ set(kcwsh_SRCS
     terminal.cpp
     inputwriter.cpp
     inputreader.cpp
+    outputreader.cpp
+    outputwriter.cpp
     hooks.cpp
 )
 
 set(kcwsh_bin_SRCS
-#    inputreader.cpp
+    consoleinputreader.cpp
+    consoleoutputwriter.cpp
     main.cpp
 )
 
