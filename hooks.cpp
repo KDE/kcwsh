@@ -4,6 +4,9 @@
 #include <kcwdebug.h>
 
 #include "inputwriter.h"
+#include "outputreader.h"
+
+using namespace KcwSH;
 
 DWORD kcwshInputHook(void *val) {
     KcwDebug() << "kcwshInputHook was called!";
@@ -14,6 +17,8 @@ DWORD kcwshInputHook(void *val) {
 
 DWORD kcwshOutputHook(void *val) {
     KcwDebug() << "kcwshOutputHook was called!";
-    return 0;
+    OutputReader reader;
+    reader.init();
+    return reader.exec();
 }
 
