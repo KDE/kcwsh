@@ -7,4 +7,10 @@
 #define KCWSH_EXPORT __declspec(dllimport)
 #endif
 
+#ifdef kcwshqt_EXPORTS
+#define KCWSHQT_EXPORT __declspec(dllexport)
+#else
+#define KCWSHQT_EXPORT __declspec(dllimport)
+#endif
+
 #endif /* kcwsh_export */
