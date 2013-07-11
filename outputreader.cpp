@@ -12,8 +12,8 @@ COORD OutputReader::getConsoleSize() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
-    ret.X = csbi.srWindow.Right - csbi.srWindow.Left;
-    ret.Y = csbi.srWindow.Bottom - csbi.srWindow.Top;
+    ret.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    ret.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
     return ret;
 }
 
@@ -22,7 +22,7 @@ void OutputReader::init() {
 
     m_timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
-    long period = 10;
+    long period = 100;
     li.QuadPart = period * -10000LL; // 10 milliseconds
     SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
 
@@ -55,6 +55,7 @@ void OutputReader::init() {
         KcwDebug() << "failed to create output shared memory:" << wss.str();
         return;
     }
+    ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
 
     addCallback(m_timer, CB(OutputReader::readData));
     KcwDebug() << "notifying setupEvent:";
@@ -62,6 +63,20 @@ void OutputReader::init() {
 }
 
 void OutputReader::readData() {
-    KcwDebug() << "reading new Data!";
+//     KcwDebug() << "reading new Data!";
+    COORD size = *m_bufferSize;
+    COORD bufferOrigin; bufferOrigin.X = 0; bufferOrigin.Y = 0;
+    COORD bufferSize = getConsoleSize();
+    static CHAR_INFO *buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
+    SMALL_RECT sr;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    sr = csbi.srWindow;
+    ReadConsoleOutput(m_consoleHdl, buffer, bufferSize, bufferOrigin, &sr);
+    if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
+        memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
+        m_bufferChanged.notify();
+        KcwDebug() << "output buffer changed!";
+    };
 }
 
