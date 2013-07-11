@@ -11,3 +11,4 @@ set_target_properties(kcwsh_bin PROPERTIES RUNTIME_OUTPUT_NAME kcwsh)
 install(TARGETS kcwsh_bin RUNTIME DESTINATION bin
                           ARCHIVE DESTINATION bin
 			  LIBRARY DESTINATION lib)
+

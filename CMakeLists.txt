@@ -38,6 +38,7 @@ set(kcwsh_SRCS
     hooks.cpp
 )
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # kcwsh library always needs to be shared
 add_library(kcwsh SHARED ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
