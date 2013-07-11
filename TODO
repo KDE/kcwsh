@@ -1,8 +1,11 @@
 TODO:
-- rename serverhandler to something more usefull
-- replace clienthandler class with a more suitable one
-* clienthandler should be the base class that handles the events only
-- reimplement a way to connect shell stdin to the stdin of the calling process
+DONE - rename serverhandler to something more usefull
+DONE - replace clienthandler class with a more suitable one
+DONE * clienthandler should be the base class that handles the events only
+DONE - reimplement a way to connect shell stdin to the stdin of the calling process
+DONE * make it possible to connect either another console input queue or a Qt input queue to the target process
+DONE - implement outputwriter
+DONE - add a very simple way to output from the console buffer (consoleoutputwriter)
+- add the Qt way
 * find a way to transform Qt keyboard events into INPUT_RECORD structures (transform that into an input queue)
-* make it possible to connect either another console input queue or a Qt input queue to the target process
-- add a very simple way to get output from the console buffer
+* get a nice interface for the Terminal
