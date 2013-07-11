@@ -8,11 +8,12 @@
 
 namespace KcwSH {
 namespace Qt {
-class KCWSHQT_EXPORT TerminalWidget : public QWidget, private Terminal {
+class KCWSHQT_EXPORT TerminalWidget : public QWidget {
     public:
         TerminalWidget(QWidget* parent = 0);
     private:
         void keyPressEvent(QKeyEvent* event);
+        Terminal* m_term;
 };
 };
 };

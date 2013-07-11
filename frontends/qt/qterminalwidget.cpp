@@ -5,8 +5,7 @@
 using namespace KcwSH::Qt;
 
 TerminalWidget::TerminalWidget(QWidget* parent)
-: QWidget(parent)
-, Terminal() {
+: QWidget(parent) {
 }
 
 void TerminalWidget::keyPressEvent(QKeyEvent* event) {
