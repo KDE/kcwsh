@@ -5,7 +5,8 @@
 
 using namespace KcwSH;
 
-OutputWriter::OutputWriter() {
+OutputWriter::OutputWriter()
+: KcwThread() {
 }
 
 void OutputWriter::setProcess(KcwProcess* proc) {
@@ -20,6 +21,7 @@ void OutputWriter::init() {
         KcwDebug() << "failed to open bufferSize shared memory:" << wss.str();
         return;
     }
+
     wss.str(L"");
     wss << L"kcwsh-bufferChanged-" << m_process->pid();
     if(m_bufferChanged.open(wss.str().c_str()) != 0) {
@@ -33,4 +35,6 @@ void OutputWriter::init() {
         KcwDebug() << "failed to open output shared memory:" << wss.str();
         return;
     }
+
+
 }
