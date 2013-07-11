@@ -24,6 +24,8 @@ include_directories(${KCW_INCLUDE_DIRS})
 
 set(kcwsh_HDRS
     terminal.h
+    outputwriter.h
+    inputreader.h
 )
 
 set(kcwsh_SRCS
@@ -36,24 +38,16 @@ set(kcwsh_SRCS
     hooks.cpp
 )
 
-set(kcwsh_bin_SRCS
-    consoleinputreader.cpp
-    consoleoutputwriter.cpp
-    main.cpp
-)
-
 # kcwsh library always needs to be shared
 add_library(kcwsh SHARED ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
 
-# as a test example use this little binary
-add_executable(kcwsh_bin ${kcwsh_bin_SRCS})
-target_link_libraries(kcwsh_bin ${KCW_LIBRARIES} kcwsh)
-set_target_properties(kcwsh_bin PROPERTIES RUNTIME_OUTPUT_NAME kcwsh)
+install(TARGETS kcwsh RUNTIME DESTINATION bin
+                      LIBRARY DESTINATION bin
+                      ARCHIVE DESTINATION lib)
 
-install(TARGETS kcwsh kcwsh_bin RUNTIME DESTINATION bin
-                                LIBRARY DESTINATION bin
-                                ARCHIVE DESTINATION lib)
+add_subdirectory(frontends)
+add_subdirectory(examples)
 
 if(BUILD_TESTS)
 #    add_subdirectory(tests)
