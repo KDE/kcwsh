@@ -9,6 +9,7 @@ set(kcwshqt_HDRS
 )
 
 set(kcwshqt_SRCS
+    qinputreader.cpp
     qterminalwidget.cpp
 )
 
