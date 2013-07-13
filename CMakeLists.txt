@@ -55,5 +55,5 @@ if(BUILD_TESTS)
 endif(BUILD_TESTS)
 
 if(BUILD_GUI_TEST AND QT4_FOUND)
-    add_subdirectory(kcwshtest)
+#    add_subdirectory(kcwshtest)
 endif(BUILD_GUI_TEST AND QT4_FOUND)
