@@ -9,11 +9,14 @@ set(kcwshqt_HDRS
 )
 
 set(kcwshqt_SRCS
+    qoutputwriter.cpp
     qinputreader.cpp
     qterminalwidget.cpp
 )
 
-add_library(kcwshqt SHARED ${kcwshqt_SRCS})
+qt4_wrap_cpp(kcwshqt_MOCS qterminalwidget_p.h qterminalwidget.h)
+
+add_library(kcwshqt SHARED ${kcwshqt_SRCS} ${kcwshqt_MOCS})
 target_link_libraries(kcwshqt kcwsh ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 install(TARGETS kcwshqt RUNTIME DESTINATION bin
                         ARCHIVE DESTINATION lib
