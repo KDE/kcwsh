@@ -13,6 +13,12 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved *
         }
         case DLL_PROCESS_DETACH:
         {
+            KcwDebug() << "detaching from process!";
+            break;
+        }
+        case DLL_THREAD_DETACH:
+        {
+            KcwDebug() << "detaching thread!";
             break;
         }
     };
