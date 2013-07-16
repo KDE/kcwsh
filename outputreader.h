@@ -19,8 +19,13 @@ class OutputReader : public KcwEventLoop {
     private:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
+
         KcwNotifier m_bufferChanged;
+        KcwNotifier m_bufferSizeChanged;
         KcwNotifier m_setupEvent;
+        KcwNotifier m_exitEventOutput;
+        
+        COORD m_bufferSizeCache;
 
         HANDLE m_timer;
         HANDLE m_consoleHdl;

@@ -6,6 +6,7 @@
 OutputReader::OutputReader()
 : m_consoleHdl(GetStdHandle(STD_OUTPUT_HANDLE))
 , KcwEventLoop() {
+    m_bufferSizeCache.X = 1; m_bufferSizeCache.Y = 1;
 }
 
 COORD OutputReader::getConsoleSize() const {
@@ -29,7 +30,7 @@ void OutputReader::init() {
     std::wstringstream wss;
     wss.str(L"");
     wss << L"kcwsh-setup-" << dwProcessId;
-    KcwDebug() << "opening setupEvent:" << wss.str();
+//     KcwDebug() << "opening setupEvent:" << wss.str();
     if(m_setupEvent.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open setupEvent notifier:" << wss.str();
         return;
@@ -42,6 +43,14 @@ void OutputReader::init() {
         return;
     }
     *m_bufferSize = getConsoleSize();
+
+    wss.str(L"");
+    wss << L"kcwsh-bufferSizeChanged-" << dwProcessId;
+    if(m_bufferSizeChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
+        return;
+    }
+
     wss.str(L"");
     wss << L"kcwsh-bufferChanged-" << dwProcessId;
     if(m_bufferChanged.open(wss.str().c_str()) != 0) {
@@ -55,10 +64,24 @@ void OutputReader::init() {
         KcwDebug() << "failed to create output shared memory:" << wss.str();
         return;
     }
+
+    wss.str(L"");
+    wss << L"kcwsh-exitEventOutput-" << dwProcessId;
+    if(m_exitEventOutput.open(wss.str().c_str())) {
+        KcwDebug() << "failed to open exitEventOutput notifier:" << wss.str();
+        return;
+    }
+
+    addCallback(m_exitEventOutput);
     ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
 
     addCallback(m_timer, CB(OutputReader::readData));
-    KcwDebug() << "notifying setupEvent:";
+    if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
+        m_bufferSizeCache = *m_bufferSize;
+        m_bufferSizeChanged.notify();
+    }
+
+    KcwDebug() << "notifying setupEvent";
     m_setupEvent.notify();
 }
 
@@ -73,10 +96,16 @@ void OutputReader::readData() {
     GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
     sr = csbi.srWindow;
     ReadConsoleOutput(m_consoleHdl, buffer, bufferSize, bufferOrigin, &sr);
+    if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
+        m_bufferSizeCache = *m_bufferSize;
+        m_bufferSizeChanged.notify();
+        KcwDebug() << "bufferSize changed!";
+    }
+
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
         m_bufferChanged.notify();
-        KcwDebug() << "output buffer changed!";
+//         KcwDebug() << "output buffer changed!";
     };
 }
 
