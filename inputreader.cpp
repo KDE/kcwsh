@@ -15,6 +15,14 @@ void InputReader::setProcess(KcwProcess* proc) {
     m_process = proc;
 }
 
+void InputReader::quit() {
+    m_exitEventInput.notify();
+    KcwDebug() << "notified inputwriter";
+    KcwDebug() << "quitting el:" << m_eventLoopId;
+    KcwEventLoop::quit();
+    KcwDebug() << "returned from own eventloop quit for InputReader";
+}
+
 void InputReader::init() {
     std::wstringstream wss;
     wss << L"kcwsh-readyRead-" << m_process->pid();
@@ -27,6 +35,13 @@ void InputReader::init() {
     wss << L"kcwsh-bytesWritten-" << m_process->pid();
     if(m_bytesWritten.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to create bytesWritten notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-exitEventInput-" << m_process->pid();
+    if(m_exitEventInput.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to create exitEventInput notifier:" << wss.str();
         return;
     }
 

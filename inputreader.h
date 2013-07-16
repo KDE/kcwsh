@@ -17,12 +17,14 @@ class KCWSH_EXPORT InputReader : public KcwThread {
     public:
         InputReader();
         void setProcess(KcwProcess *proc);
+        virtual void quit();
         KcwProcess* process();
         virtual void init();
     protected:
         KcwProcess* m_process;
         KcwNotifier m_readyRead;
         KcwNotifier m_bytesWritten;
+        KcwNotifier m_exitEventInput;
         KcwSharedMemory<INPUT_RECORD> m_input;
         KcwSharedMemory<int> m_inputSize;
         int m_cacheSize;
