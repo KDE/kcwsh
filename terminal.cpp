@@ -16,6 +16,7 @@ using namespace KcwSH;
 
 Terminal::Terminal()
 : m_process("cmd.exe")
+, m_setup(false)
 , KcwThread() {
 }
 
@@ -49,6 +50,45 @@ void Terminal::setOutputWriter(OutputWriter* writer) {
     m_outputWriter = writer;
 }
 
+InputReader* Terminal::inputReader() const {
+    return m_inputReader;
+}
+
+OutputWriter* Terminal::outputWriter() const {
+    return m_outputWriter;
+}
+
+
+COORD Terminal::terminalSize() const {
+    COORD ret = {};
+    if(isSetup()) return m_outputWriter->bufferSize();
+    else return ret;
+}
+
+void Terminal::sizeChanged() {
+    KcwDebug() << "bufferSize has changed";
+}
+
+void Terminal::hasQuit() {
+    Terminal::quit();
+}
+
+void Terminal::quit() {
+    KcwDebug() << "Terminal::quit";
+    removeCallback(m_process.process(), CB(hasQuit));
+    if(m_inputReader != NULL && m_outputWriter != NULL) {
+        m_inputReader->quit();
+        removeCallback(m_outputWriter->m_bufferSizeChanged);
+        m_outputWriter->quit();
+    }
+    m_process.quit();
+    KcwEventLoop::quit();
+}
+
+bool Terminal::isSetup() const {
+    return m_setup;
+}
+
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
         KcwDebug() << "no inputreader or outputwriter set!";
@@ -57,7 +97,7 @@ DWORD Terminal::run() {
 
     // 1) create a shell process in suspended mode (default)
     m_process.start();
-    addCallback(m_process.process());
+    addCallback(m_process.process(), CB(hasQuit));
 
     m_inputReader->setProcess(&m_process);
     m_inputReader->init();
@@ -65,7 +105,6 @@ DWORD Terminal::run() {
 
     std::wstringstream wss;
     wss << "kcwsh-exitEvent-" << m_process.pid();
-//     KcwDebug() << "creating exitEvent: " << wss.str();
     if(m_exitEvent.open(wss.str().c_str()) != 0) {
         KcwDebug() << "could not create exitEvent!";
         return -1;
@@ -73,7 +112,6 @@ DWORD Terminal::run() {
 
     wss.str(L"");
     wss << "kcwsh-setup-" << m_process.pid();
-    KcwDebug() << "creating setupEvent: " << wss.str();
     if(m_setupEvent.open(wss.str().c_str()) != 0) {
         KcwDebug() << "could not create setupEvent!";
         return -1;
@@ -89,15 +127,20 @@ DWORD Terminal::run() {
         return -2;
     }
 
+    // duplicate the handle so that we can hand it over to the remote threads
+    // that way they can be shut down when their applications wants to quit
+    HANDLE remoteProcHandle;
+    DuplicateHandle(GetCurrentProcess(), m_process.process(), m_process.process(), &remoteProcHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
+
     // 3) create a remote thread which does the handling of input
     LPTHREAD_START_ROUTINE pfnThreadRoutine = NULL;
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshInputHook - (char*)s_module));
-    HANDLE hRemoteInputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, NULL, 0, NULL);
+    HANDLE hRemoteInputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
 //    addCallback(hRemoteThread);
 
     // 3) create a remote thread which does the handling of input
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshOutputHook - (char*)s_module));
-    HANDLE hRemoteOutputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, NULL, 0, NULL);
+    HANDLE hRemoteOutputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
 //    addCallback(hRemoteThread);
 
     // wait for 10 seconds maximum for setup of the other side
@@ -106,10 +149,13 @@ DWORD Terminal::run() {
         KcwDebug() << "the other side failed to signal that it loaded correctly!";
         return -3;
     }
+    m_setup = true;
 
     m_outputWriter->setProcess(&m_process);
     m_outputWriter->init();
     m_outputWriter->start();
+
+    addCallback(m_outputWriter->m_bufferSizeChanged, CB(sizeChanged));
 
     m_process.resume();
     return KcwEventLoop::exec();

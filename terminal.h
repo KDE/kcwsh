@@ -24,9 +24,31 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         void setInputReader(InputReader* reader);
         void setOutputWriter(OutputWriter* writer);
+        InputReader* inputReader() const;
+        OutputWriter* outputWriter() const;
+
+        bool isSetup() const;
+
+        /**
+         * this function closes down the complete terminal and shuts down the terminal thread
+         */
+        void quit();
+
+        virtual KCW_CALLBACK(Terminal, sizeChanged);
+
+        /**
+         * this callback will be called as soon as the terminal process has finished;
+         * a finished terminal thread will automatically end this Terminal's thread
+         * it won't be called in case you call quit directly
+         */
+        virtual KCW_CALLBACK(Terminal, hasQuit);
+
+        COORD terminalSize() const;
         DWORD run();
     private:
         std::wstring getModulePath(HMODULE hModule);
+
+        bool m_setup;
 
         InputReader *m_inputReader;
         OutputWriter *m_outputWriter;
