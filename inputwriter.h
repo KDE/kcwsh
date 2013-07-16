@@ -19,6 +19,7 @@ class InputWriter : public KcwEventLoop {
         HANDLE m_consoleHdl;
         KcwNotifier m_bytesWritten;
         KcwNotifier m_readyRead;
+        KcwNotifier m_exitEventInput;
         KcwSharedMemory<INPUT_RECORD> m_input;
         KcwSharedMemory<int> m_inputSize;
 };

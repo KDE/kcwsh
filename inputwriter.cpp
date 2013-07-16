@@ -40,6 +40,13 @@ void InputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-exitEventInput-" << dwProcessId;
+    if(m_exitEventInput.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open exitEventInput notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-input-" << dwProcessId;
     if(m_input.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open input shared memory:" << wss.str();
@@ -54,6 +61,7 @@ void InputWriter::init() {
     }
 
     KcwDebug() << "adding new callback:" << m_bytesWritten.handle() << "from object:" << this;
-     addCallback(m_bytesWritten.handle(), CB(InputWriter::writeData));
+    addCallback(m_bytesWritten, CB(InputWriter::writeData));
+    addCallback(m_exitEventInput);
 //    m_readyRead.notify();
 }
