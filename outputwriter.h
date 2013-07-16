@@ -11,6 +11,8 @@
 class KcwProcess;
 
 namespace KcwSH {
+class Terminal;
+
 class KCWSH_EXPORT OutputWriter : public KcwThread {
     public:
         OutputWriter();
@@ -18,12 +20,20 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         virtual void init();
 
         void setProcess(KcwProcess* proc);
+        virtual void quit();
+
+    private:
+        COORD bufferSize() const;
+
     protected:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwNotifier m_bufferChanged;
+        KcwNotifier m_bufferSizeChanged;
+        KcwNotifier m_exitEventOutput;
 
         KcwProcess* m_process;
+        friend class KcwSH::Terminal;
 };
 };
 #endif /* outputwriter */
