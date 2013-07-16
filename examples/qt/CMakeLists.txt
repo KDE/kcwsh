@@ -9,7 +9,7 @@ set(qkcwsh_SRCS
 )
 
 add_executable(qkcwsh WIN32 ${qkcwsh_SRCS})
-target_link_libraries(qkcwsh ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTMAIN_LIBRARY})
+target_link_libraries(qkcwsh ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTMAIN_LIBRARY} kcwshqt)
 install(TARGETS qkcwsh RUNTIME DESTINATION bin
                        LIBRARY DESTINATION lib
                        ARCHIVE DESTINATION lib)
