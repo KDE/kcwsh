@@ -1,0 +1,5 @@
+{
+      "name": "kcwsh"
+	, "files": [ { "directory": ".", "filters": ["*.cpp", "*.h", "*.ui", "CMakeLists.txt", "Find*.cmake"], "recursive": 1 }
+	           , { "directory": "../libkcw", "filters": ["*.cpp", "*.h", "*.ui", "CMakeLists.txt", "Find*.cmake"], "recursive": 1 } ]
+}
