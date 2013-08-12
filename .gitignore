@@ -1,3 +1,4 @@
 build
 kcw/doc/html
 *~
+.ctags
