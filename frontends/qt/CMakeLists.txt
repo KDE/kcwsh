@@ -14,7 +14,7 @@ set(kcwshqt_SRCS
     qterminalwidget.cpp
 )
 
-qt4_wrap_cpp(kcwshqt_MOCS qterminalwidget_p.h qterminalwidget.h)
+qt4_wrap_cpp(kcwshqt_MOCS qterminalwidget_p.h qterminalwidget.h qoutputwriter.h)
 
 add_library(kcwshqt SHARED ${kcwshqt_SRCS} ${kcwshqt_MOCS})
 target_link_libraries(kcwshqt kcwsh ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})

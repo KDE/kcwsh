@@ -18,24 +18,29 @@ class TerminalWidgetTerminal : public QObject, public Terminal {
         KCW_CALLBACK(TerminalWidgetTerminal, termEnded)
 
         TerminalWidgetTerminal()
-        : ow(new QtOutputWriter)
+        : ow(NULL)
         , ir(new QtInputReader)
         , Terminal() {
+            ow = new QtOutputWriter(this);
             setInputReader(ir);
             setOutputWriter(ow);
         }
 
         ~TerminalWidgetTerminal() {
+            delete ow;
+            delete ir;
             qDebug() << "ending TerminalWidgetTerminal";
         }
 
 //        KCW_CALLBACK(TerminalWidgetTerminal, quit)
         void sizeChanged();
+        void bufferChanged();
         void hasQuit();
 
     Q_SIGNALS:
         void terminalQuit();
         void terminalSizeChanged();
+        void terminalBufferChanged();
 
     public Q_SLOTS:
         void endTerminal();

@@ -13,6 +13,7 @@
 
 #include "terminal.h"
 #include "qinputreader.h"
+#include "qoutputwriter.h"
 #include "qterminalwidget_p.h"
 
 #include <windows.h>
@@ -39,6 +40,11 @@ std::string getDefaultCmdInterpreter() {
 void TerminalWidgetTerminal::sizeChanged() {
     qDebug() << "TerminalWidgetTerminal::sizeChanged";
     emit terminalSizeChanged();
+    qDebug() << "adapted to new size!";
+}
+
+void TerminalWidgetTerminal::bufferChanged() {
+    emit terminalBufferChanged();
 }
 
 /*void TerminalWidgetTerminal::quit() {
@@ -62,8 +68,10 @@ TerminalWidget::TerminalWidget(QWidget* parent)
 , QWidget(parent) {
     setFont(QFont("Courier New"));
     connect(t, SIGNAL(terminalSizeChanged()), this, SLOT(resizeTerminal()));
+    connect(t, SIGNAL(terminalBufferChanged()), this, SLOT(repaint()));
     connect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
     connect(t, SIGNAL(terminalQuit()), qApp, SLOT(quit()));
+    reinterpret_cast<QtOutputWriter*>(t->outputWriter())->setTerminal(t);
     t->setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
     t->start();
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
@@ -83,10 +91,16 @@ void TerminalWidget::keyPressEvent(QKeyEvent* event) {
 }
 
 void TerminalWidget::paintEvent(QPaintEvent* event) {
+    static int cnt = 0;
+    cnt++;
     QPainter p(this);
     p.setPen(Qt::blue);
     p.setFont(font());
-    p.drawText(rect(), Qt::AlignCenter, "bla");
+    qDebug() << "bla!";
+    QString bla;
+    if(t->isSetup()) bla = reinterpret_cast<QtOutputWriter*>(t->outputWriter())->getBufferText();
+    qDebug() << "bla2!" << bla;
+    p.drawText(rect(), Qt::AlignCenter, QString("%1").arg(cnt));
 //    QWidget::paintEvent(event);
 }
 
