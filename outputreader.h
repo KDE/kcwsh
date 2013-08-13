@@ -10,6 +10,7 @@
 class OutputReader : public KcwEventLoop {
     public:
         OutputReader();
+        ~OutputReader();
 
         void init();
 
@@ -27,6 +28,7 @@ class OutputReader : public KcwEventLoop {
         
         COORD m_bufferSizeCache;
 
+        HANDLE m_mutex;
         HANDLE m_timer;
         HANDLE m_consoleHdl;
 };

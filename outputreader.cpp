@@ -9,6 +9,10 @@ OutputReader::OutputReader()
     m_bufferSizeCache.X = 1; m_bufferSizeCache.Y = 1;
 }
 
+OutputReader::~OutputReader() {
+    KcwDebug() << "outputreader dtor!";
+}
+
 COORD OutputReader::getConsoleSize() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -72,6 +76,13 @@ void OutputReader::init() {
         return;
     }
 
+    wss.str(L"");
+    wss << L"kcwsh-bufferMutex-" << dwProcessId;
+    if((m_mutex = CreateMutexW(NULL, FALSE, wss.str().c_str())) == NULL) {
+        KcwDebug() << "failed to create bufferMutex:" << wss.str();
+        return;
+    }
+
     addCallback(m_exitEventOutput);
     ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
 
@@ -93,19 +104,29 @@ void OutputReader::readData() {
     static CHAR_INFO *buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
+    std::wstringstream wss;
     GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
     sr = csbi.srWindow;
     ReadConsoleOutput(m_consoleHdl, buffer, bufferSize, bufferOrigin, &sr);
     if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
+        wss.str(L"");
+        wss << L"kcwsh-bufferMutex-" << ::GetCurrentProcessId();
+/*        m_mutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, wss.str().c_str()); */
+        KcwDebug() << "waiting for mutex!";
+        WaitForSingleObject(m_mutex, INFINITE);
         m_bufferSizeCache = *m_bufferSize;
         m_bufferSizeChanged.notify();
         KcwDebug() << "bufferSize changed!";
+        ReleaseMutex(m_mutex);
+        // unlock here
     }
 
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
+        // lock here
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
         m_bufferChanged.notify();
-//         KcwDebug() << "output buffer changed!";
+        KcwDebug() << "output buffer changed!";
+        // unlock here
     };
 }
 
