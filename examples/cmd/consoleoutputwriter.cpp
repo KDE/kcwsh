@@ -2,10 +2,12 @@
 
 #include <kcwdebug.h>
 
+#include "consoleterminal.h"
+
 using namespace KcwSH;
 
-ConsoleOutputWriter::ConsoleOutputWriter()
-: OutputWriter() {
+ConsoleOutputWriter::ConsoleOutputWriter(ConsoleTerminal* term)
+: OutputWriter(term) {
 }
 
 ConsoleOutputWriter::~ConsoleOutputWriter() {
@@ -31,6 +33,13 @@ void ConsoleOutputWriter::restoreConsole() {
     SetConsoleActiveScreenBuffer(m_screenSave);
 }
 
+// this overwrites the implementation from KcwSH::OutputWriter, so Terminal::bufferChanged won't be called
+// instead we have to call it manually
+void ConsoleOutputWriter::bufferChanged() {
+    writeData();
+    m_term->bufferChanged();
+}
+
 void ConsoleOutputWriter::init() {
     OutputWriter::init();
 
@@ -52,5 +61,4 @@ void ConsoleOutputWriter::init() {
     csbi.dwMaximumWindowSize = currentCoords;
     csbi.srWindow = sr;
     KcwDebug() << "setting Console info:" << SetConsoleScreenBufferInfoEx(m_screen, &csbi);
-    addCallback(m_bufferChanged.handle(), CB(ConsoleOutputWriter::writeData));
 }

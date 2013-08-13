@@ -35,6 +35,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         void quit();
 
         virtual KCW_CALLBACK(Terminal, sizeChanged);
+        virtual KCW_CALLBACK(Terminal, bufferChanged);
 
         /**
          * this callback will be called as soon as the terminal process has finished;
@@ -43,10 +44,18 @@ class KCWSH_EXPORT Terminal : public KcwThread {
          */
         virtual KCW_CALLBACK(Terminal, hasQuit);
 
+        virtual KCW_CALLBACK(Terminal, aboutToQuit);
+
         COORD terminalSize() const;
         DWORD run();
+
+    protected:
+        Terminal(InputReader* ir, OutputWriter* ow);
+
     private:
         std::wstring getModulePath(HMODULE hModule);
+        KCW_CALLBACK(Terminal, inputThreadDetached);
+        KCW_CALLBACK(Terminal, outputThreadDetached);
 
         bool m_setup;
 

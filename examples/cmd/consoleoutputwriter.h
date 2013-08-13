@@ -5,12 +5,16 @@
 
 #include "outputwriter.h"
 
+class ConsoleTerminal;
+
 class ConsoleOutputWriter : public KcwSH::OutputWriter {
     public:
-        ConsoleOutputWriter();
+        ConsoleOutputWriter(ConsoleTerminal* term);
         ~ConsoleOutputWriter();
 
         void init();
+
+        void bufferChanged();
 
         virtual KCW_CALLBACK(ConsoleOutputWriter, writeData);
     private:

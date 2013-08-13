@@ -8,9 +8,7 @@
 #include <kcwapp.h>
 #include <kcwdebug.h>
 
-#include "terminal.h"
-#include "consoleinputreader.h"
-#include "consoleoutputwriter.h"
+#include "consoleterminal.h"
 
 #define BUFSIZE 4096
 
@@ -60,12 +58,12 @@ int main(int argc, char **argv) {
     }
 
     if(g_debug) std::cout << "enabled debug mode!" << std::endl;
-    ConsoleInputReader reader;
-    ConsoleOutputWriter writer;
-    Terminal term;
+//     ConsoleInputReader reader;
+//     ConsoleOutputWriter writer;
+    ConsoleTerminal term;
     term.setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
-    term.setInputReader(&reader);
-    term.setOutputWriter(&writer);
+//     term.setInputReader(&reader);
+//     term.setOutputWriter(&writer);
     term.start();
     app.addCallback(term.exitEvent());
     app.exec();

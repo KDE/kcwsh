@@ -1,5 +1,6 @@
 set(kcwsh_bin_SRCS
     main.cpp
+    consoleterminal.cpp
     consoleoutputwriter.cpp
     consoleinputreader.cpp
 )

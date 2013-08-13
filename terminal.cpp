@@ -20,6 +20,14 @@ Terminal::Terminal()
 , KcwThread() {
 }
 
+Terminal::Terminal(InputReader* ir, OutputWriter* ow)
+: m_process("cmd.exe")
+, m_setup(false)
+, m_inputReader(ir)
+, m_outputWriter(ow)
+, KcwThread() {
+}
+
 Terminal::~Terminal() {
 }
 
@@ -61,16 +69,28 @@ OutputWriter* Terminal::outputWriter() const {
 
 COORD Terminal::terminalSize() const {
     COORD ret = {};
-    if(isSetup()) return m_outputWriter->bufferSize();
-    else return ret;
+    if(isSetup()) {
+        KcwDebug() << "isSetup!";
+        return m_outputWriter->bufferSize();
+    } else {
+        return ret;
+    }
 }
 
 void Terminal::sizeChanged() {
     KcwDebug() << "bufferSize has changed";
 }
 
+void Terminal::bufferChanged() {
+    KcwDebug() << "buffer has changed";
+}
+
 void Terminal::hasQuit() {
     Terminal::quit();
+}
+
+void Terminal::aboutToQuit() {
+    KcwDebug() << "aboutToQuit!";
 }
 
 void Terminal::quit() {
@@ -78,7 +98,6 @@ void Terminal::quit() {
     removeCallback(m_process.process(), CB(hasQuit));
     if(m_inputReader != NULL && m_outputWriter != NULL) {
         m_inputReader->quit();
-        removeCallback(m_outputWriter->m_bufferSizeChanged);
         m_outputWriter->quit();
     }
     m_process.quit();
@@ -87,6 +106,14 @@ void Terminal::quit() {
 
 bool Terminal::isSetup() const {
     return m_setup;
+}
+
+void Terminal::inputThreadDetached() {
+    KcwDebug() << "inputThreadDetached!";
+}
+
+void Terminal::outputThreadDetached() {
+    KcwDebug() << "outputThreadDetached!";
 }
 
 DWORD Terminal::run() {
@@ -109,6 +136,7 @@ DWORD Terminal::run() {
         KcwDebug() << "could not create exitEvent!";
         return -1;
     };
+    addCallback(m_exitEvent, CB(aboutToQuit), true);
 
     wss.str(L"");
     wss << "kcwsh-setup-" << m_process.pid();
@@ -136,12 +164,12 @@ DWORD Terminal::run() {
     LPTHREAD_START_ROUTINE pfnThreadRoutine = NULL;
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshInputHook - (char*)s_module));
     HANDLE hRemoteInputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
-//    addCallback(hRemoteThread);
+    addCallback(hRemoteInputThread, CB(inputThreadDetached), true);
 
-    // 3) create a remote thread which does the handling of input
+    // 3) create a remote thread which does the handling of output
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshOutputHook - (char*)s_module));
     HANDLE hRemoteOutputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
-//    addCallback(hRemoteThread);
+    addCallback(hRemoteOutputThread, CB(outputThreadDetached), true);
 
     // wait for 10 seconds maximum for setup of the other side
     DWORD ret = WaitForSingleObject(m_setupEvent.handle(), 3000);
@@ -154,8 +182,6 @@ DWORD Terminal::run() {
     m_outputWriter->setProcess(&m_process);
     m_outputWriter->init();
     m_outputWriter->start();
-
-    addCallback(m_outputWriter->m_bufferSizeChanged, CB(sizeChanged));
 
     m_process.resume();
     return KcwEventLoop::exec();
