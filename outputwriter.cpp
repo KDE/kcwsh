@@ -3,10 +3,13 @@
 #include <kcwdebug.h>
 #include <kcwprocess.h>
 
+#include "terminal.h"
+
 using namespace KcwSH;
 
-OutputWriter::OutputWriter()
-: KcwThread() {
+OutputWriter::OutputWriter(Terminal* term)
+: m_term(term)
+, KcwThread() {
 }
 
 void OutputWriter::setProcess(KcwProcess* proc) {
@@ -21,10 +24,20 @@ void OutputWriter::quit() {
     KcwDebug() << "returned from own eventloop quit for OutputWriter";
 }
 
+void OutputWriter::sizeChanged() {
+    KcwDebug() << __FUNCTION__;
+    m_term->sizeChanged();
+}
+
+void OutputWriter::bufferChanged() {
+    KcwDebug() << __FUNCTION__;
+    m_term->bufferChanged();
+}
+
 COORD OutputWriter::bufferSize() const {
     COORD ret;
 //     KcwDebug() << "before the crash:";
-    KcwDebug() << m_bufferSize.data()->X << "X" << m_bufferSize.data()->Y;
+//     KcwDebug() << m_bufferSize.data()->X << "X" << m_bufferSize.data()->Y;
     memcpy(&ret, m_bufferSize.data(), sizeof(COORD));
     return ret;
 }
@@ -66,4 +79,14 @@ void OutputWriter::init() {
         KcwDebug() << "failed to open output shared memory:" << wss.str();
         return;
     }
+
+    wss.str(L"");
+    wss << L"kcwsh-bufferMutex-" << m_process->pid();
+    if((m_mutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, wss.str().c_str())) == NULL) {
+        KcwDebug() << "could not open mutex:" << wss.str();
+        return;
+    }
+
+    addCallback(m_bufferSizeChanged, CB(sizeChanged));
+    addCallback(m_bufferChanged, CB(bufferChanged));
 }

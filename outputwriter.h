@@ -15,16 +15,16 @@ class Terminal;
 
 class KCWSH_EXPORT OutputWriter : public KcwThread {
     public:
-        OutputWriter();
+        OutputWriter(Terminal* t);
 
         virtual void init();
 
         void setProcess(KcwProcess* proc);
         virtual void quit();
+        virtual KCW_CALLBACK(OutputWriter, sizeChanged);
+        virtual KCW_CALLBACK(OutputWriter, bufferChanged);
 
-    private:
         COORD bufferSize() const;
-
     protected:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
@@ -32,8 +32,10 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         KcwNotifier m_bufferSizeChanged;
         KcwNotifier m_exitEventOutput;
 
+        HANDLE m_mutex;
+
         KcwProcess* m_process;
-        friend class KcwSH::Terminal;
+        Terminal* m_term;
 };
 };
 #endif /* outputwriter */
