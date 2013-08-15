@@ -29,7 +29,6 @@ class TerminalWidgetTerminal : public QObject, public Terminal {
         ~TerminalWidgetTerminal() {
             delete ow;
             delete ir;
-            qDebug() << "ending TerminalWidgetTerminal";
         }
 
 //        KCW_CALLBACK(TerminalWidgetTerminal, quit)
