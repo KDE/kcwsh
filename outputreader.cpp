@@ -10,7 +10,7 @@ OutputReader::OutputReader()
 }
 
 OutputReader::~OutputReader() {
-    KcwDebug() << "outputreader dtor!";
+//     KcwDebug() << __FUNCTION__;
 }
 
 COORD OutputReader::getConsoleSize() const {
@@ -92,7 +92,7 @@ void OutputReader::init() {
         m_bufferSizeChanged.notify();
     }
 
-    KcwDebug() << "notifying setupEvent";
+//     KcwDebug() << "notifying setupEvent";
     m_setupEvent.notify();
 }
 
@@ -125,7 +125,7 @@ void OutputReader::readData() {
         // lock here
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
         m_bufferChanged.notify();
-        KcwDebug() << "output buffer changed!";
+//         KcwDebug() << "output buffer changed!";
         // unlock here
     };
 }
