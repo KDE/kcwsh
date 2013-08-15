@@ -38,12 +38,13 @@ std::string getDefaultCmdInterpreter() {
 }
 
 void TerminalWidgetTerminal::sizeChanged() {
-    qDebug() << "TerminalWidgetTerminal::sizeChanged";
+    qDebug() << __FUNCTION__;
     emit terminalSizeChanged();
     qDebug() << "adapted to new size!";
 }
 
 void TerminalWidgetTerminal::bufferChanged() {
+    qDebug() << __FUNCTION__;
     emit terminalBufferChanged();
 }
 
@@ -71,7 +72,6 @@ TerminalWidget::TerminalWidget(QWidget* parent)
     connect(t, SIGNAL(terminalBufferChanged()), this, SLOT(repaint()));
     connect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
     connect(t, SIGNAL(terminalQuit()), qApp, SLOT(quit()));
-    reinterpret_cast<QtOutputWriter*>(t->outputWriter())->setTerminal(t);
     t->setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
     t->start();
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
@@ -91,17 +91,12 @@ void TerminalWidget::keyPressEvent(QKeyEvent* event) {
 }
 
 void TerminalWidget::paintEvent(QPaintEvent* event) {
-    static int cnt = 0;
-    cnt++;
     QPainter p(this);
     p.setPen(Qt::blue);
     p.setFont(font());
-    qDebug() << "bla!";
-    QString bla;
-    if(t->isSetup()) bla = reinterpret_cast<QtOutputWriter*>(t->outputWriter())->getBufferText();
-    qDebug() << "bla2!" << bla;
-    p.drawText(rect(), Qt::AlignCenter, QString("%1").arg(cnt));
-//    QWidget::paintEvent(event);
+    QString text;
+    if(t->isSetup()) text = reinterpret_cast<QtOutputWriter*>(t->outputWriter())->getBufferText();
+    p.drawText(rect(), Qt::AlignLeft | Qt::AlignVCenter, text);
 }
 
 QSize TerminalWidget::sizeHint() const {
