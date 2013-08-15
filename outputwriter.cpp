@@ -18,19 +18,16 @@ void OutputWriter::setProcess(KcwProcess* proc) {
 
 void OutputWriter::quit() {
     m_exitEventOutput.notify();
-    KcwDebug() << "notified outputreader";
-    KcwDebug() << "quitting el:" << m_eventLoopId;
     KcwEventLoop::quit();
-    KcwDebug() << "returned from own eventloop quit for OutputWriter";
 }
 
 void OutputWriter::sizeChanged() {
-    KcwDebug() << __FUNCTION__;
+//     KcwDebug() << __FUNCTION__;
     m_term->sizeChanged();
 }
 
 void OutputWriter::bufferChanged() {
-    KcwDebug() << __FUNCTION__;
+//     KcwDebug() << __FUNCTION__;
     m_term->bufferChanged();
 }
 
@@ -43,7 +40,7 @@ COORD OutputWriter::bufferSize() const {
 }
 
 void OutputWriter::init() {
-    KcwDebug() << "OutputWriter::init";
+//     KcwDebug() << __FUNCTION__;
     std::wstringstream wss;
     wss.str(L"");
     wss << L"kcwsh-bufferSize-" << m_process->pid();
