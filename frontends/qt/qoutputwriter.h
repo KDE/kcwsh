@@ -4,7 +4,6 @@
 #include "outputwriter.h"
 
 #include <QString>
-#include <QObject>
 
 class TerminalWidgetTerminal;
 
@@ -13,16 +12,11 @@ class Terminal;
 namespace QtFrontend {
 
 
-class QtOutputWriter : public QObject, public OutputWriter {
-    Q_OBJECT
+class QtOutputWriter : public OutputWriter {
     public:
         QtOutputWriter(TerminalWidgetTerminal* term);
         QString getBufferText();
         void setTerminal(Terminal* t) {m_term = t;}
-//         KCW_CALLBACK(QtOutputWriter, bufferChanged);
-
-        void start();
-        void pause();
 };
 };
 };
