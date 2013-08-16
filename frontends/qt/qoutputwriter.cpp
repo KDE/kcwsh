@@ -65,7 +65,7 @@ void QtOutputWriter::paintOutput(QPainter* p, const QRectF& r) {
         QString tempText(maxcolnum, 0);
         int oldattr = 0;
         for(int linenum = 0; linenum < maxlinenum; linenum++) { // go through each line
-            WCHAR* arrayptr = beginLine;
+            WCHAR* arrayptr = &array[0];
             WCHAR* curLine = arrayptr;
             oldattr = buffer[linenum * maxcolnum].Attributes;
             for(int colnum = 0; colnum < maxcolnum; colnum++) { // go through each column
