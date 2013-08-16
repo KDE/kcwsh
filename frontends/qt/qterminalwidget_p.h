@@ -27,6 +27,7 @@ class TerminalWidgetTerminal : public QObject, public Terminal {
         }
 
         ~TerminalWidgetTerminal() {
+            endTerminal();
             delete ow;
             delete ir;
         }

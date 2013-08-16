@@ -19,6 +19,7 @@ class KCWSHQT_EXPORT TerminalWidget : public QWidget {
         QSize sizeHint() const;
     private Q_SLOTS:
         void resizeTerminal();
+        void startTerminal();
 //         void aboutToQuit();
     private:
         void keyReleaseEvent(QKeyEvent* event);

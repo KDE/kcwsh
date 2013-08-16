@@ -65,16 +65,29 @@ void TerminalWidgetTerminal::endTerminal() {
 }
 
 TerminalWidget::TerminalWidget(QWidget* parent)
-: t(new TerminalWidgetTerminal)
+: t(NULL)
 , QWidget(parent) {
     setFont(QFont("Courier New"));
+    startTerminal();
+    setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+}
+
+void TerminalWidget::startTerminal() {
+    if(t != NULL) {
+        disconnect(t, SIGNAL(terminalSizeChanged()), this, SLOT(resizeTerminal()));
+        disconnect(t, SIGNAL(terminalBufferChanged()), this, SLOT(repaint()));
+        disconnect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
+        disconnect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
+        delete t;
+    }
+    t = new TerminalWidgetTerminal;
     connect(t, SIGNAL(terminalSizeChanged()), this, SLOT(resizeTerminal()));
     connect(t, SIGNAL(terminalBufferChanged()), this, SLOT(repaint()));
     connect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
-    connect(t, SIGNAL(terminalQuit()), qApp, SLOT(quit()));
+    connect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
+
     t->setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
     t->start();
-    setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 }
 
 void TerminalWidget::resizeTerminal() {
