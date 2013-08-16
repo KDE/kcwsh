@@ -40,13 +40,13 @@ std::string getDefaultCmdInterpreter() {
 void TerminalWidgetTerminal::sizeChanged() {
     qDebug() << __FUNCTION__;
     emit terminalSizeChanged();
-    qDebug() << "adapted to new size!";
 }
 
 void TerminalWidgetTerminal::bufferChanged() {
     qDebug() << __FUNCTION__;
     emit terminalBufferChanged();
 }
+
 
 /*void TerminalWidgetTerminal::quit() {
     qDebug() << "TerminalWidgetTerminal::quit";
