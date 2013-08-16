@@ -94,9 +94,7 @@ void TerminalWidget::paintEvent(QPaintEvent* event) {
     QPainter p(this);
     p.setPen(Qt::blue);
     p.setFont(font());
-    QString text;
-    if(t->isSetup()) text = reinterpret_cast<QtOutputWriter*>(t->outputWriter())->getBufferText();
-    p.drawText(rect(), Qt::AlignLeft | Qt::AlignVCenter, text);
+    reinterpret_cast<QtOutputWriter*>(t->outputWriter())->paintOutput(&p, rect());
 }
 
 QSize TerminalWidget::sizeHint() const {
