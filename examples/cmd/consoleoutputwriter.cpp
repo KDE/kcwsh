@@ -40,6 +40,13 @@ void ConsoleOutputWriter::bufferChanged() {
     m_term->bufferChanged();
 }
 
+void ConsoleOutputWriter::cursorPositionChanged() {
+    COORD pos = *m_cursorPosition.data();
+    pos.Y += 1;
+    SetConsoleCursorPosition(m_screen, pos);
+    m_term->cursorPositionChanged();
+}
+
 void ConsoleOutputWriter::init() {
     OutputWriter::init();
 

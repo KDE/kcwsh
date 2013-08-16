@@ -15,6 +15,7 @@ class ConsoleOutputWriter : public KcwSH::OutputWriter {
         void init();
 
         void bufferChanged();
+        void cursorPositionChanged();
 
         virtual KCW_CALLBACK(ConsoleOutputWriter, writeData);
     private:

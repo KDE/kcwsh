@@ -10,6 +10,7 @@ class ConsoleTerminal : public KcwSH::Terminal {
 
         void bufferChanged();
         void sizeChanged();
+        void cursorPositionChanged();
 };
 
 #endif /* consoleterminal */

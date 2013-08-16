@@ -23,3 +23,7 @@ void ConsoleTerminal::bufferChanged() {
 void ConsoleTerminal::sizeChanged() {
     KcwDebug() << __FUNCTION__;
 }
+
+void ConsoleTerminal::cursorPositionChanged() {
+    KcwDebug() << __FUNCTION__;
+}
