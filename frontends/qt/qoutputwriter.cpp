@@ -1,6 +1,7 @@
 #include "qoutputwriter.h"
 
 #include <windows.h>
+#include <QBrush>
 #include <QChar>
 #include <QColor>
 #include <QDebug>
@@ -40,6 +41,30 @@ QPen penForAttribute(int attr)
     return QPen(colorArray[shortAttributes]);
 }
 
+QBrush brushForAttribute(int attr)
+{
+    int shortAttributes = (attr & 0xf0) >> 4;
+    QColor colorArray[16];
+    colorArray[0x0] = QColor(0x00, 0x00, 0x00);
+    colorArray[0x1] = QColor(0x00, 0x00, 0x80);
+    colorArray[0x2] = QColor(0x00, 0x80, 0x00);
+    colorArray[0x3] = QColor(0x00, 0x80, 0x80);
+    colorArray[0x4] = QColor(0x80, 0x00, 0x00);
+    colorArray[0x5] = QColor(0x80, 0x00, 0x80);
+    colorArray[0x6] = QColor(0x80, 0x80, 0x00);
+    colorArray[0x7] = QColor(0xc0, 0xc0, 0xc0);
+    colorArray[0x8] = QColor(0x80, 0x80, 0x80);
+    colorArray[0x9] = QColor(0x00, 0x00, 0xff);
+    colorArray[0xa] = QColor(0x00, 0xff, 0x00);
+    colorArray[0xb] = QColor(0x00, 0xff, 0xff);
+    colorArray[0xc] = QColor(0xff, 0x00, 0x00);
+    colorArray[0xd] = QColor(0xff, 0x00, 0xff);
+    colorArray[0xe] = QColor(0xff, 0xff, 0x00);
+    colorArray[0xf] = QColor(0xff, 0xff, 0xff);
+
+    return QBrush(colorArray[shortAttributes]);
+}
+
 QtOutputWriter::QtOutputWriter(TerminalWidgetTerminal* term)
 : OutputWriter(term) {
 }
@@ -64,6 +89,7 @@ void QtOutputWriter::paintOutput(QPainter* p, const QRectF& r) {
         ZeroMemory(array, sizeof(WCHAR)*(maxcolnum + 1));
         QString tempText(maxcolnum, 0);
         int oldattr = 0;
+        p->setBackgroundMode(Qt::OpaqueMode);
         for(int linenum = 0; linenum < maxlinenum; linenum++) { // go through each line
             WCHAR* arrayptr = &array[0];
             WCHAR* curLine = arrayptr;
@@ -74,6 +100,7 @@ void QtOutputWriter::paintOutput(QPainter* p, const QRectF& r) {
                     *arrayptr = L'\0';
                     tempText = QString::fromUtf16(reinterpret_cast<ushort*>(curLine));
                     p->setPen(penForAttribute(oldattr));
+                    p->setBackground(brushForAttribute(oldattr));
                     p->drawText(r.x() + (curLine - beginLine) * fontWidth, r.y() + linenum * fontHeight, 
                                 r.x() + colnum * fontWidth,                r.y() + (linenum + 1) * fontHeight, 
                                 Qt::AlignLeft | Qt::AlignTop, tempText);
@@ -86,6 +113,7 @@ void QtOutputWriter::paintOutput(QPainter* p, const QRectF& r) {
             *arrayptr = L'\0';
             tempText = QString::fromUtf16(reinterpret_cast<ushort*>(curLine));
             p->setPen(penForAttribute(oldattr));
+            p->setBackground(brushForAttribute(oldattr));
             p->drawText(r.x() + (curLine - beginLine) * fontWidth, r.y() + linenum * fontHeight, 
                         r.width(),                                 r.y() + (linenum + 1) * fontHeight, 
                         Qt::AlignLeft | Qt::AlignTop, tempText);
