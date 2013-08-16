@@ -17,10 +17,7 @@ void InputReader::setProcess(KcwProcess* proc) {
 
 void InputReader::quit() {
     m_exitEventInput.notify();
-    KcwDebug() << "notified inputwriter";
-    KcwDebug() << "quitting el:" << m_eventLoopId;
     KcwEventLoop::quit();
-    KcwDebug() << "returned from own eventloop quit for InputReader";
 }
 
 void InputReader::init() {
