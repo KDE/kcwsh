@@ -36,6 +36,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         virtual KCW_CALLBACK(Terminal, sizeChanged);
         virtual KCW_CALLBACK(Terminal, bufferChanged);
+        virtual KCW_CALLBACK(Terminal, cursorPositionChanged);
 
         /**
          * this callback will be called as soon as the terminal process has finished;

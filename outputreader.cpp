@@ -22,6 +22,12 @@ COORD OutputReader::getConsoleSize() const {
     return ret;
 }
 
+COORD OutputReader::getCursorPosition() const {
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    return csbi.dwCursorPosition;
+}
+
 void OutputReader::init() {
     DWORD dwProcessId = ::GetCurrentProcessId();
 
@@ -49,6 +55,14 @@ void OutputReader::init() {
     *m_bufferSize = getConsoleSize();
 
     wss.str(L"");
+    wss << L"kcwsh-cursorPosition-" << dwProcessId;
+    if(m_cursorPosition.create(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to create cursorPosition shared memory:" << wss.str();
+        return;
+    }
+    *m_cursorPosition = getCursorPosition();
+
+    wss.str(L"");
     wss << L"kcwsh-bufferSizeChanged-" << dwProcessId;
     if(m_bufferSizeChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
@@ -59,6 +73,13 @@ void OutputReader::init() {
     wss << L"kcwsh-bufferChanged-" << dwProcessId;
     if(m_bufferChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open bufferChanged notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-cursorPositionChanged-" << dwProcessId;
+    if(m_cursorPositionChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open cursorPositionChanged notifier:" << wss.str();
         return;
     }
 
@@ -101,12 +122,19 @@ void OutputReader::readData() {
     COORD size = *m_bufferSize;
     COORD bufferOrigin; bufferOrigin.X = 0; bufferOrigin.Y = 0;
     COORD bufferSize = getConsoleSize();
+    COORD cursorPos = getCursorPosition();
     static CHAR_INFO *buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     std::wstringstream wss;
     GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
     sr = csbi.srWindow;
+
+    if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {
+        *m_cursorPosition = cursorPos;
+        m_cursorPositionChanged.notify();
+    }
+
     ReadConsoleOutput(m_consoleHdl, buffer, bufferSize, bufferOrigin, &sr);
     if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
         wss.str(L"");

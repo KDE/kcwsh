@@ -23,13 +23,16 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         virtual void quit();
         virtual KCW_CALLBACK(OutputWriter, sizeChanged);
         virtual KCW_CALLBACK(OutputWriter, bufferChanged);
+        virtual KCW_CALLBACK(OutputWriter, cursorPositionChanged);
 
         COORD bufferSize() const;
     protected:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
+        KcwSharedMemory<COORD> m_cursorPosition;
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;
+        KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_exitEventOutput;
 
         HANDLE m_mutex;

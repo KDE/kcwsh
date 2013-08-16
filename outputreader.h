@@ -15,17 +15,20 @@ class OutputReader : public KcwEventLoop {
         void init();
 
         COORD getConsoleSize() const;
+        COORD getCursorPosition() const;
 
         KCW_CALLBACK(OutputReader, readData)
     private:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
+        KcwSharedMemory<COORD> m_cursorPosition;
 
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;
+        KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_setupEvent;
         KcwNotifier m_exitEventOutput;
-        
+
         COORD m_bufferSizeCache;
 
         HANDLE m_mutex;

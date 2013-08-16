@@ -85,6 +85,10 @@ void Terminal::bufferChanged() {
     KcwDebug() << "buffer has changed";
 }
 
+void Terminal::cursorPositionChanged() {
+    KcwDebug() << __FUNCTION__;
+}
+
 void Terminal::hasQuit() {
     Terminal::quit();
 }

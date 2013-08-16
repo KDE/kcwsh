@@ -31,6 +31,10 @@ void OutputWriter::bufferChanged() {
     m_term->bufferChanged();
 }
 
+void OutputWriter::cursorPositionChanged() {
+    m_term->cursorPositionChanged();
+}
+
 COORD OutputWriter::bufferSize() const {
     COORD ret;
 //     KcwDebug() << "before the crash:";
@@ -50,6 +54,13 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-cursorPosition-" << m_process->pid();
+    if(m_cursorPosition.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open cursorPosition shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-bufferSizeChanged-" << m_process->pid();
     if(m_bufferSizeChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
@@ -60,6 +71,13 @@ void OutputWriter::init() {
     wss << L"kcwsh-bufferChanged-" << m_process->pid();
     if(m_bufferChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open bufferChanged notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-cursorPositionChanged-" << m_process->pid();
+    if(m_cursorPositionChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open cursorPositionChanged notifier:" << wss.str();
         return;
     }
 
@@ -86,4 +104,5 @@ void OutputWriter::init() {
 
     addCallback(m_bufferSizeChanged, CB(sizeChanged));
     addCallback(m_bufferChanged, CB(bufferChanged));
+    addCallback(m_cursorPositionChanged, CB(cursorPositionChanged));
 }
