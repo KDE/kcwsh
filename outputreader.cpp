@@ -23,9 +23,12 @@ COORD OutputReader::getConsoleSize() const {
 }
 
 COORD OutputReader::getCursorPosition() const {
+    COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
-    return csbi.dwCursorPosition;
+    ret.Y = csbi.dwCursorPosition.Y - csbi.srWindow.Top;
+    ret.X = csbi.dwCursorPosition.X;
+    return ret;
 }
 
 void OutputReader::init() {
