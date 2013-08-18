@@ -2,6 +2,7 @@
 #define inputreader
 
 #include <windows.h>
+#include <string>
 
 #include <kcwthread.h>
 #include <kcwnotifier.h>
@@ -20,6 +21,9 @@ class KCWSH_EXPORT InputReader : public KcwThread {
         virtual void quit();
         KcwProcess* process();
         virtual void init();
+
+        void sendText(const std::wstring& t);
+        void sendCommand(const std::wstring& c);
     protected:
         KcwProcess* m_process;
         KcwNotifier m_readyRead;
