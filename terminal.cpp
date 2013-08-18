@@ -66,6 +66,13 @@ OutputWriter* Terminal::outputWriter() const {
     return m_outputWriter;
 }
 
+void Terminal::sendText(const std::wstring& t) {
+    m_inputReader->sendText(t);
+}
+
+void Terminal::sendCommand(const std::wstring& c) {
+    m_inputReader->sendCommand(c);
+}
 
 COORD Terminal::terminalSize() const {
     COORD ret = {};

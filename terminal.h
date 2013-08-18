@@ -50,6 +50,9 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         COORD terminalSize() const;
         DWORD run();
 
+        void sendText(const std::wstring& t);
+        void sendCommand(const std::wstring& c);
+
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);
 
