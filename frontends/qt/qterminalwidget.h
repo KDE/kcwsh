@@ -20,6 +20,7 @@ class KCWSHQT_EXPORT TerminalWidget : public QWidget {
     private Q_SLOTS:
         void resizeTerminal();
         void startTerminal();
+        void showContextMenu(const QPoint& p);
 //         void aboutToQuit();
     private:
         void keyReleaseEvent(QKeyEvent* event);

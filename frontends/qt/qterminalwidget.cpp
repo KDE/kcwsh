@@ -8,7 +8,11 @@
 #include <QPaintEvent>
 #include <QPen>
 #include <QColor>
+#include <QMenu>
+#include <QPoint>
 #include <QSizePolicy>
+#include <QClipboard>
+#include <QMimeData>
 #include <QApplication>
 
 #include "terminal.h"
@@ -70,6 +74,8 @@ TerminalWidget::TerminalWidget(QWidget* parent)
     setFont(QFont("Courier New"));
     startTerminal();
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
 }
 
 void TerminalWidget::startTerminal() {
@@ -125,4 +131,30 @@ QSize TerminalWidget::minimumSize() const {
     }
     QSize size(fontMetrics().width("W") * c.X, fontMetrics().height() * c.Y);
     return size;
+}
+
+void TerminalWidget::showContextMenu(const QPoint& pos)
+{
+    QMenu myMenu;
+    QAction copyAction("Copy", this);
+    QAction pasteAction("Paste", this);
+    myMenu.addAction(&copyAction);
+    myMenu.addAction(&pasteAction);
+
+    const QClipboard* cb = QApplication::clipboard();
+    const QMimeData* md = cb->mimeData();
+
+    copyAction.setEnabled(false);
+    pasteAction.setEnabled(md->hasText());
+
+    QAction* selectedItem = myMenu.exec(mapToGlobal(pos));
+    if(selectedItem == &pasteAction)
+    {
+        qDebug() << "sending clipboard content:" << md->text();
+        t->sendText(reinterpret_cast<const WCHAR*>(md->text().utf16()));
+    }
+    else
+    {
+        // nothing was chosen
+    }
 }
