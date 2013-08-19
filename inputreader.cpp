@@ -22,7 +22,6 @@ void InputReader::quit() {
 
 void InputReader::sendText(const std::wstring& t) {
     // cache size is 128 chars
-    KcwDebug() << "sending text:" << t;
     std::wstring::const_iterator it = t.begin();
     int remlen = t.length();
 
