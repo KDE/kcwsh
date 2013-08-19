@@ -77,7 +77,6 @@ void Terminal::sendCommand(const std::wstring& c) {
 COORD Terminal::terminalSize() const {
     COORD ret = {};
     if(isSetup()) {
-        KcwDebug() << "isSetup!";
         return m_outputWriter->bufferSize();
     } else {
         return ret;
