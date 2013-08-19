@@ -26,30 +26,19 @@ void InputReader::sendText(const std::wstring& t) {
     int len = t.length();
 
     // FIXME: handle pastes longer than 128 characters
-    if(len > 64) len = 64;
+    if(len > 128) len = 128;
 
     INPUT_RECORD ir[128];
     ZeroMemory(ir, sizeof(INPUT_RECORD) * 128);
-    for(int i = 0; i < 128 && i < len * 2; i+=2) {
-        KcwDebug() << "writing char:" << t[i / 2] << i;
-        int scan = VkKeyScanW(t[i / 2]);
-        unsigned vsc = MapVirtualKey(scan & 0xff, MAPVK_VK_TO_VSC);
-        bool shift = scan & 0x100, ctrl = scan & 0x200, alt = scan & 0x400;
-
+    for(int i = 0; i < 128 && i < len; i++) {
+        KcwDebug() << "writing char:" << t[i] << i;
         ir[i].EventType = KEY_EVENT;
         ir[i].Event.KeyEvent.bKeyDown = TRUE;
         ir[i].Event.KeyEvent.wRepeatCount = 1;
-        ir[i].Event.KeyEvent.wVirtualKeyCode = vsc;//event->nativeVirtualKey();
-        ir[i].Event.KeyEvent.wVirtualScanCode = scan & 0xff;//event->nativeScanCode();
-        ir[i].Event.KeyEvent.uChar.UnicodeChar = t[i / 2]; //static_cast<WCHAR>(event->text().utf16()[0]);
-        ir[i].Event.KeyEvent.dwControlKeyState = shift * SHIFT_PRESSED |
-                                                 ctrl  * LEFT_CTRL_PRESSED |
-                                                 alt   * RIGHT_ALT_PRESSED; //event->nativeModifiers();
-        memcpy(&ir[i+1], &ir[i], sizeof(INPUT_RECORD));
-        ir[i+1].Event.KeyEvent.bKeyDown = FALSE;
+        ir[i].Event.KeyEvent.uChar.UnicodeChar = t[i];
     }
-    memcpy(m_input.data(), ir, sizeof(INPUT_RECORD) * len * 2);
-    *m_inputSize = len * 2;
+    memcpy(m_input.data(), ir, sizeof(INPUT_RECORD) * len);
+    *m_inputSize = len;
     m_bytesWritten.notify();
 }
 
