@@ -23,23 +23,31 @@ void InputReader::quit() {
 void InputReader::sendText(const std::wstring& t) {
     // cache size is 128 chars
     KcwDebug() << "sending text:" << t;
-    int len = t.length();
-
-    // FIXME: handle pastes longer than 128 characters
-    if(len > 128) len = 128;
+    std::wstring::const_iterator it = t.begin();
+    int remlen = t.length();
 
     INPUT_RECORD ir[128];
-    ZeroMemory(ir, sizeof(INPUT_RECORD) * 128);
-    for(int i = 0; i < 128 && i < len; i++) {
-        KcwDebug() << "writing char:" << t[i] << i;
-        ir[i].EventType = KEY_EVENT;
-        ir[i].Event.KeyEvent.bKeyDown = TRUE;
-        ir[i].Event.KeyEvent.wRepeatCount = 1;
-        ir[i].Event.KeyEvent.uChar.UnicodeChar = t[i];
+    while(remlen > 0) {
+        DWORD ret = WaitForSingleObject(m_readyRead, 500);
+        if(ret != WAIT_OBJECT_0) {
+            KcwDebug() << "other side is not in readyRead state!";
+            return;
+        }
+
+        ZeroMemory(ir, sizeof(INPUT_RECORD) * 128);
+        int curlen = (remlen > 128) ? 128 : remlen;
+        remlen -= curlen;
+        for(int i = 0; i < 128 && i < remlen; i++) {
+            ir[i].EventType = KEY_EVENT;
+            ir[i].Event.KeyEvent.bKeyDown = TRUE;
+            ir[i].Event.KeyEvent.wRepeatCount = 1;
+            ir[i].Event.KeyEvent.uChar.UnicodeChar = *it;
+            it++;
+        }
+        memcpy(m_input.data(), ir, sizeof(INPUT_RECORD) * curlen);
+        *m_inputSize = curlen;
+        m_bytesWritten.notify();
     }
-    memcpy(m_input.data(), ir, sizeof(INPUT_RECORD) * len);
-    *m_inputSize = len;
-    m_bytesWritten.notify();
 }
 
 void InputReader::sendCommand(const std::wstring& c) {
