@@ -42,17 +42,17 @@ std::string getDefaultCmdInterpreter() {
 }
 
 void TerminalWidgetTerminal::sizeChanged() {
-    qDebug() << __FUNCTION__;
+//     qDebug() << __FUNCTION__;
     emit terminalSizeChanged();
 }
 
 void TerminalWidgetTerminal::bufferChanged() {
-    qDebug() << __FUNCTION__;
+//     qDebug() << __FUNCTION__;
     emit terminalBufferChanged();
 }
 
 void TerminalWidgetTerminal::cursorPositionChanged() {
-    qDebug() << __FUNCTION__;
+//     qDebug() << __FUNCTION__;
     emit terminalCursorPositionChanged();
 }
 
