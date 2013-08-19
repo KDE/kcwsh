@@ -51,6 +51,10 @@ void TerminalWidgetTerminal::bufferChanged() {
     emit terminalBufferChanged();
 }
 
+void TerminalWidgetTerminal::cursorPositionChanged() {
+    qDebug() << __FUNCTION__;
+    emit terminalCursorPositionChanged();
+}
 
 /*void TerminalWidgetTerminal::quit() {
     qDebug() << "TerminalWidgetTerminal::quit";
@@ -82,6 +86,7 @@ void TerminalWidget::startTerminal() {
     if(t != NULL) {
         disconnect(t, SIGNAL(terminalSizeChanged()), this, SLOT(resizeTerminal()));
         disconnect(t, SIGNAL(terminalBufferChanged()), this, SLOT(repaint()));
+        disconnect(t, SIGNAL(terminalCursorPositionChanged()), this, SLOT(repaint()));
         disconnect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
         disconnect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
         delete t;
@@ -89,6 +94,7 @@ void TerminalWidget::startTerminal() {
     t = new TerminalWidgetTerminal;
     connect(t, SIGNAL(terminalSizeChanged()), this, SLOT(resizeTerminal()));
     connect(t, SIGNAL(terminalBufferChanged()), this, SLOT(repaint()));
+    connect(t, SIGNAL(terminalCursorPositionChanged()), this, SLOT(repaint()));
     connect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
     connect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
 

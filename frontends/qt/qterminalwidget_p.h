@@ -35,12 +35,14 @@ class TerminalWidgetTerminal : public QObject, public Terminal {
 //        KCW_CALLBACK(TerminalWidgetTerminal, quit)
         void sizeChanged();
         void bufferChanged();
+        void cursorPositionChanged();
         void hasQuit();
 
     Q_SIGNALS:
         void terminalQuit();
         void terminalSizeChanged();
         void terminalBufferChanged();
+        void terminalCursorPositionChanged();
 
     public Q_SLOTS:
         void endTerminal();
