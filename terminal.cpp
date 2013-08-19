@@ -182,7 +182,7 @@ DWORD Terminal::run() {
     addCallback(hRemoteOutputThread, CB(outputThreadDetached), true);
 
     // wait for 10 seconds maximum for setup of the other side
-    DWORD ret = WaitForSingleObject(m_setupEvent.handle(), 3000);
+    DWORD ret = WaitForSingleObject(m_setupEvent, 3000);
     if(ret != WAIT_OBJECT_0) {
         KcwDebug() << "the other side failed to signal that it loaded correctly!";
         return -3;
