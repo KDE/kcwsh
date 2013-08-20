@@ -7,7 +7,7 @@
 HINSTANCE s_module = 0;
 KcwNotifier s_notifier;
 
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved */ ) {
+extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /* lpvReserved */ ) {
     s_module = hInstance;
     switch(dwReason) {
         case DLL_PROCESS_ATTACH:
