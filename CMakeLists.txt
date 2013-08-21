@@ -13,7 +13,10 @@ endif(BUILD_TESTS)
 find_package(Qt4)
 
 # this is my package I am allowed to do what I want!
-add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE -wd4275 -wd4251)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE)
+if(MSVC)
+    add_definitions(-wd4275 -wd4251)
+endif(MSVC)
 
 #string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 #string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -42,6 +45,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # kcwsh library always needs to be shared
 add_library(kcwsh SHARED ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
+set_target_properties(kcwsh PROPERTIES PREFIX "")
 
 install(TARGETS kcwsh RUNTIME DESTINATION bin
                       LIBRARY DESTINATION bin
