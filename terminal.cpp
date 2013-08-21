@@ -146,7 +146,7 @@ DWORD Terminal::run() {
         KcwDebug() << "could not create exitEvent!";
         return -1;
     };
-    addCallback(m_exitEvent, CB(aboutToQuit), true);
+    addCallback(m_exitEvent, CB(aboutToQuit), NULL, true);
 
     wss.str(L"");
     wss << "kcwsh-setup-" << m_process.pid();
@@ -174,12 +174,12 @@ DWORD Terminal::run() {
     LPTHREAD_START_ROUTINE pfnThreadRoutine = NULL;
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshInputHook - (char*)s_module));
     HANDLE hRemoteInputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
-    addCallback(hRemoteInputThread, CB(inputThreadDetached), true);
+    addCallback(hRemoteInputThread, CB(inputThreadDetached), NULL, true);
 
     // 3) create a remote thread which does the handling of output
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshOutputHook - (char*)s_module));
     HANDLE hRemoteOutputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
-    addCallback(hRemoteOutputThread, CB(outputThreadDetached), true);
+    addCallback(hRemoteOutputThread, CB(outputThreadDetached), NULL, true);
 
     // wait for 10 seconds maximum for setup of the other side
     DWORD ret = WaitForSingleObject(m_setupEvent, 3000);
