@@ -30,7 +30,7 @@ std::string getDefaultCmdInterpreter() {
     CHAR szPath[MAX_PATH];
 
     if(SUCCEEDED(SHGetFolderPathA(NULL,
-                                 CSIDL_SYSTEMX86|CSIDL_FLAG_CREATE,
+                                 CSIDL_SYSTEM|CSIDL_FLAG_CREATE,
                                  NULL,
                                  0,
                                  szPath)))
