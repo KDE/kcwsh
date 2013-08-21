@@ -30,7 +30,7 @@ std::string getDefaultCmdInterpreter() {
     CHAR szPath[MAX_PATH];
 
     if(SUCCEEDED(SHGetFolderPathA(NULL,
-                                 CSIDL_SYSTEMX86|CSIDL_FLAG_CREATE,
+                                 CSIDL_SYSTEM|CSIDL_FLAG_CREATE,
                                  NULL,
                                  0,
                                  szPath)))
@@ -51,19 +51,15 @@ int main(int argc, char **argv) {
             usage();
             return 1;
         }
-        
+
         if(*it == "-d" || *it == "--debug") {
             g_debug = true;
         }
     }
 
     if(g_debug) std::cout << "enabled debug mode!" << std::endl;
-//     ConsoleInputReader reader;
-//     ConsoleOutputWriter writer;
     ConsoleTerminal term;
     term.setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
-//     term.setInputReader(&reader);
-//     term.setOutputWriter(&writer);
     term.start();
     app.addCallback(term.exitEvent());
     app.exec();

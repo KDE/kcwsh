@@ -54,18 +54,20 @@ void ConsoleOutputWriter::init() {
     saveConsole();
 
     // now change our console size
-    CONSOLE_SCREEN_BUFFER_INFOEX csbi;
-    ZeroMemory(&csbi, sizeof(CONSOLE_SCREEN_BUFFER_INFOEX));
-    csbi.cbSize = sizeof(CONSOLE_SCREEN_BUFFER_INFOEX);
-    KcwDebug() << "getting console info:" << GetConsoleScreenBufferInfoEx(m_screen, &csbi);
+//     CONSOLE_SCREEN_BUFFER_INFO csbi;
+//     ZeroMemory(&csbi, sizeof(CONSOLE_SCREEN_BUFFER_INFO));
+//     csbi.cbSize = sizeof(CONSOLE_SCREEN_BUFFER_INFO);
+//     KcwDebug() << "getting console info:" << GetConsoleScreenBufferInfo(m_screen, &csbi);
     COORD currentCoords = *m_bufferSize;
     KcwDebug() << "current size of the buffer:" << currentCoords.X << "X" << currentCoords.Y;
     int headerLines = 2;
     currentCoords.Y += headerLines;
-    csbi.dwSize = currentCoords;
+    SetConsoleScreenBufferSize(m_screen, currentCoords);
+//     csbi.dwSize = currentCoords;
     SMALL_RECT sr;
     sr.Left = 0; sr.Top = headerLines; sr.Right = currentCoords.X; sr.Bottom = currentCoords.Y + headerLines;
-    csbi.dwMaximumWindowSize = currentCoords;
-    csbi.srWindow = sr;
-    KcwDebug() << "setting Console info:" << SetConsoleScreenBufferInfoEx(m_screen, &csbi);
+//     csbi.dwMaximumWindowSize = currentCoords;
+    SetConsoleWindowInfo(m_screen, TRUE, &sr);
+//     csbi.srWindow = sr;
+//     KcwDebug() << "setting Console info:" << SetConsoleScreenBufferInfoEx(m_screen, &csbi);
 }
