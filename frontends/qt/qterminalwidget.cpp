@@ -77,7 +77,6 @@ TerminalWidget::TerminalWidget(QWidget* parent)
 , QWidget(parent) {
     setFont(QFont("Courier New"));
     startTerminal();
-    setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
 }
@@ -120,6 +119,9 @@ void TerminalWidget::paintEvent(QPaintEvent* event) {
     p.setPen(Qt::blue);
     p.setFont(font());
     reinterpret_cast<QtOutputWriter*>(t->outputWriter())->paintOutput(&p, rect());
+}
+
+void TerminalWidget::resizeEvent(QResizeEvent* event) {
 }
 
 QSize TerminalWidget::sizeHint() const {

@@ -56,8 +56,8 @@ add_subdirectory(examples)
 
 if(BUILD_TESTS)
 #    add_subdirectory(tests)
-endif(BUILD_TESTS)
+endif()
 
 if(BUILD_GUI_TEST AND QT4_FOUND)
 #    add_subdirectory(kcwshtest)
-endif(BUILD_GUI_TEST AND QT4_FOUND)
+endif()

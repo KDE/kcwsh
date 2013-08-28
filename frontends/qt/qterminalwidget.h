@@ -26,6 +26,7 @@ class KCWSHQT_EXPORT TerminalWidget : public QWidget {
         void keyReleaseEvent(QKeyEvent* event);
         void keyPressEvent(QKeyEvent* event);
         void paintEvent(QPaintEvent* event);
+        void resizeEvent(QResizeEvent* event);
         TerminalWidgetTerminal* t;
 };
 };
