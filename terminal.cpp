@@ -17,12 +17,14 @@ using namespace KcwSH;
 Terminal::Terminal()
 : m_process("cmd.exe")
 , m_setup(false)
+, m_active(false)
 , KcwThread() {
 }
 
 Terminal::Terminal(InputReader* ir, OutputWriter* ow)
 : m_process("cmd.exe")
 , m_setup(false)
+, m_active(false)
 , m_inputReader(ir)
 , m_outputWriter(ow)
 , KcwThread() {
@@ -125,6 +127,30 @@ void Terminal::inputThreadDetached() {
 void Terminal::outputThreadDetached() {
     KcwDebug() << "outputThreadDetached!";
 }
+void Terminal::activate() {
+    setActive(true);
+}
+
+void Terminal::deactivate() {
+    setActive(false);
+}
+
+void Terminal::setActive(bool t) {
+    if(t == m_active) return;
+
+    m_active = t;
+    if(t) {
+        ResumeThread(m_inputWriter);
+        ResumeThread(m_outputReader);
+    } else {
+        SuspendThread(m_inputWriter);
+        SuspendThread(m_outputReader);
+    }
+}
+
+bool Terminal::active() const {
+    return m_active;
+}
 
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
@@ -135,6 +161,8 @@ DWORD Terminal::run() {
     // 1) create a shell process in suspended mode (default)
     m_process.start();
     addCallback(m_process.process(), CB(hasQuit));
+
+    m_active = true;
 
     m_inputReader->setProcess(&m_process);
     m_inputReader->init();
@@ -173,13 +201,13 @@ DWORD Terminal::run() {
     // 3) create a remote thread which does the handling of input
     LPTHREAD_START_ROUTINE pfnThreadRoutine = NULL;
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshInputHook - (char*)s_module));
-    HANDLE hRemoteInputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
-    addCallback(hRemoteInputThread, CB(inputThreadDetached), NULL, true);
+    m_inputWriter = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
+    addCallback(m_inputWriter, CB(inputThreadDetached), NULL, true);
 
     // 3) create a remote thread which does the handling of output
     pfnThreadRoutine = (LPTHREAD_START_ROUTINE)((char*)injector.baseAddress() + ((char*)kcwshOutputHook - (char*)s_module));
-    HANDLE hRemoteOutputThread = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
-    addCallback(hRemoteOutputThread, CB(outputThreadDetached), NULL, true);
+    m_outputReader = CreateRemoteThread(m_process.process(), NULL, 0, pfnThreadRoutine, remoteProcHandle, 0, NULL);
+    addCallback(m_outputReader, CB(outputThreadDetached), NULL, true);
 
     // wait for 10 seconds maximum for setup of the other side
     DWORD ret = WaitForSingleObject(m_setupEvent, 3000);

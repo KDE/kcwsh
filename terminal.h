@@ -47,6 +47,12 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         virtual KCW_CALLBACK(Terminal, aboutToQuit);
 
+        virtual KCW_CALLBACK(Terminal, activate);
+        virtual KCW_CALLBACK(Terminal, deactivate);
+
+        void setActive(bool t);
+        bool active() const;
+
         COORD terminalSize() const;
         DWORD run();
 
@@ -62,6 +68,10 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         KCW_CALLBACK(Terminal, outputThreadDetached);
 
         bool m_setup;
+        bool m_active;
+
+        HANDLE m_inputWriter;
+        HANDLE m_outputReader;
 
         InputReader *m_inputReader;
         OutputWriter *m_outputWriter;
