@@ -142,22 +142,20 @@ void OutputReader::readData() {
     if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
         wss.str(L"");
         wss << L"kcwsh-bufferMutex-" << ::GetCurrentProcessId();
-/*        m_mutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, wss.str().c_str()); */
-        KcwDebug() << "waiting for mutex!";
+//         KcwDebug() << "waiting for mutex!";
         WaitForSingleObject(m_mutex, INFINITE);
         m_bufferSizeCache = *m_bufferSize;
         m_bufferSizeChanged.notify();
         KcwDebug() << "bufferSize changed!";
         ReleaseMutex(m_mutex);
-        // unlock here
     }
 
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
-        // lock here
+        WaitForSingleObject(m_mutex, INFINITE);
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
+        ReleaseMutex(m_mutex);
         m_bufferChanged.notify();
 //         KcwDebug() << "output buffer changed!";
-        // unlock here
     };
 }
 

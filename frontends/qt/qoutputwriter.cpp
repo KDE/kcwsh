@@ -57,7 +57,9 @@ void QtOutputWriter::paintOutput(QPainter* p, const QRectF& r) {
 
         CHAR_INFO* buffer = new CHAR_INFO[len];
         ZeroMemory(buffer, sizeof(CHAR_INFO) * len);
+        WaitForSingleObject(m_mutex, INFINITE);
         memcpy(buffer, m_output.data(), sizeof(CHAR_INFO) * len);
+        ReleaseMutex(m_mutex);
 
         WCHAR* array = new WCHAR[maxcolnum + 1];
         const WCHAR* beginLine = &array[0];
@@ -118,7 +120,9 @@ QString QtOutputWriter::getBufferText() {
     CHAR_INFO* buffer = new CHAR_INFO[len];
     ZeroMemory(buffer, sizeof(CHAR_INFO) * len);
 
+    WaitForSingleObject(m_mutex, INFINITE);
     memcpy(buffer, m_output.data(), sizeof(CHAR_INFO) * len);
+    ReleaseMutex(m_mutex);
     QString ret = QString();
     ret.resize(len + size.Y + 1);
     WCHAR* array = new WCHAR[len+size.Y+1];
