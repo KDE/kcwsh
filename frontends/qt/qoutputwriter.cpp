@@ -50,14 +50,17 @@ void QtOutputWriter::paintOutput(QPainter* p, const QRectF& r) {
         const int fontHeight = fm.height();
         const int fontWidth = fm.width("W");
 
+        if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+            KcwDebug() << __FUNCTION__ << "failed!";
+            return;
+        }
         COORD size = m_term->terminalSize();
         const int maxlinenum = size.Y;
         const int maxcolnum = size.X;
-        const int len = (maxcolnum * maxlinenum > 10000) ? 10000 : maxcolnum * maxlinenum;
+        const int len = maxcolnum * maxlinenum;
 
         CHAR_INFO* buffer = new CHAR_INFO[len];
         ZeroMemory(buffer, sizeof(CHAR_INFO) * len);
-        WaitForSingleObject(m_mutex, INFINITE);
         memcpy(buffer, m_output.data(), sizeof(CHAR_INFO) * len);
         ReleaseMutex(m_mutex);
 
@@ -116,11 +119,13 @@ QString QtOutputWriter::getBufferText() {
     COORD size = m_term->terminalSize();
     const int maxlinenum = size.Y;
     const int maxcolnum = size.X;
-    const int len = (maxcolnum * maxlinenum > 10000) ? 10000 : maxcolnum * maxlinenum;
+    const int len = maxcolnum * maxlinenum;
     CHAR_INFO* buffer = new CHAR_INFO[len];
     ZeroMemory(buffer, sizeof(CHAR_INFO) * len);
 
-    WaitForSingleObject(m_mutex, INFINITE);
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        qDebug() << __FUNCTION__ << "failed!";
+    }
     memcpy(buffer, m_output.data(), sizeof(CHAR_INFO) * len);
     ReleaseMutex(m_mutex);
     QString ret = QString();
