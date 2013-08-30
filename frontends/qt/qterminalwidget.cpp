@@ -99,10 +99,15 @@ void TerminalWidget::startTerminal() {
 
     t->setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
     t->start();
+    COORD c;
+    c.X = width() / fontMetrics().width("W");
+    c.Y = height() / fontMetrics().height();
+    qDebug() << __FUNCTION__ << width() << "X" << height() << "=" << c.X << "X" << c.Y;
+    t->setTerminalSize(c);
 }
 
 void TerminalWidget::resizeTerminal() {
-    qDebug() << "resizing terminal";
+//     qDebug() << "resizing terminal";
     adjustSize();
 }
 
@@ -122,6 +127,14 @@ void TerminalWidget::paintEvent(QPaintEvent* event) {
 }
 
 void TerminalWidget::resizeEvent(QResizeEvent* event) {
+    COORD c;
+//     qDebug() << __FUNCTION__;
+    const QSize s = event->size();
+    if(!s.isValid() || s.isNull()) return;
+
+    c.X = s.width() / fontMetrics().width("W");
+    c.Y = s.height() / fontMetrics().height();
+    t->setTerminalSize(c);
 }
 
 QSize TerminalWidget::sizeHint() const {

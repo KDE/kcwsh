@@ -135,6 +135,11 @@ void Terminal::deactivate() {
     setActive(false);
 }
 
+void Terminal::setTerminalSize(COORD c) {
+//     KcwDebug() << __FUNCTION__ << c.X << "X" << c.Y;
+    if(isSetup()) m_outputWriter->setBufferSize(c);
+}
+
 void Terminal::setActive(bool t) {
     if(t == m_active) return;
 
@@ -220,6 +225,9 @@ DWORD Terminal::run() {
     m_outputWriter->setProcess(&m_process);
     m_outputWriter->init();
     m_outputWriter->start();
+    COORD c;
+    c.X = 80; c.Y = 25;
+    m_outputWriter->setBufferSize(c);
 
     m_process.resume();
     return KcwEventLoop::exec();

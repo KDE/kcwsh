@@ -53,7 +53,9 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         void setActive(bool t);
         bool active() const;
 
+        void setTerminalSize(COORD c);
         COORD terminalSize() const;
+
         DWORD run();
 
         void sendText(const std::wstring& t);

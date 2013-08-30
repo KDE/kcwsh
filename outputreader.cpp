@@ -22,6 +22,102 @@ COORD OutputReader::getConsoleSize() const {
     return ret;
 }
 
+bool operator >= (COORD a, COORD b) {
+    return a.X >= b.X || a.Y >= b.Y;
+}
+
+bool operator != (COORD a, COORD b) {
+    return a.X != b.X || a.Y != b.Y;
+}
+
+void OutputReader::shutdown() {
+    KcwDebug() << __FUNCTION__;
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "failed!";
+        return;
+    }
+    m_output.close();
+    ReleaseMutex(m_mutex);
+    m_setupEvent.notify();
+}
+
+void OutputReader::setConsoleSize() {
+    KcwDebug() << __FUNCTION__;
+    if(m_output.opened()) {
+        KcwDebug() << __FUNCTION__ << "failed, buffer still opened!";
+        return;
+    }
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "failed!";
+        return;
+    }
+
+    COORD maxSize = GetLargestConsoleWindowSize(m_consoleHdl);
+    KcwDebug() << "maximumSize:" << maxSize.X << "X" << maxSize.Y;
+    SMALL_RECT sr;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    sr = csbi.srWindow;
+
+    COORD bufferSize = csbi.dwSize;
+    COORD oldSize = bufferSize;
+    m_bufferSizeCache = *m_bufferSize;
+
+    // check if newly requested size is totally contained in maxSize
+    // if not restrict it to the maximum size
+    if(m_bufferSizeCache >= maxSize) {
+        if(m_bufferSizeCache.X > maxSize.X) m_bufferSizeCache.X = maxSize.X;
+        if(m_bufferSizeCache.Y > maxSize.Y) m_bufferSizeCache.Y = maxSize.Y;
+        *m_bufferSize = m_bufferSizeCache;
+    }
+
+    KcwDebug() << "requested size:" << m_bufferSizeCache.X << "X" << m_bufferSizeCache.Y;
+    if(oldSize.X < m_bufferSizeCache.X) {
+        bufferSize.X = m_bufferSizeCache.X;
+        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+            DWORD dw = GetLastError();
+            KcwDebug() << "failed to increase screen buffer width to" << bufferSize.X << "Error:" << dw;
+        }
+    }
+    if(oldSize.Y < m_bufferSizeCache.Y) {
+        bufferSize.Y = m_bufferSizeCache.Y;
+        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+            DWORD dw = GetLastError();
+            KcwDebug() << "failed to increase screen buffer height to" << bufferSize.Y << "Error:" << dw;
+        }
+    }
+
+    sr.Bottom = sr.Top + m_bufferSizeCache.Y - 1;
+    if(!SetConsoleWindowInfo(m_consoleHdl, TRUE, &sr)) {
+        DWORD dw = GetLastError();
+        KcwDebug() << "failed to set console height!" << dw;
+    }
+    sr.Right = sr.Left + m_bufferSizeCache.X - 1;
+    if(!SetConsoleWindowInfo(m_consoleHdl, TRUE, &sr)) {
+        DWORD dw = GetLastError();
+        KcwDebug() << "failed to set console width!" << dw;
+    }
+
+    if(oldSize.X > m_bufferSizeCache.X) {
+        bufferSize.X = m_bufferSizeCache.X;
+        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+            DWORD dw = GetLastError();
+            KcwDebug() << "failed to decrease screen buffer width to" << bufferSize.X << "Error:" << dw;
+        }
+    }
+    if(oldSize.Y > m_bufferSizeCache.Y) {
+        bufferSize.Y = m_bufferSizeCache.Y;
+        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+            DWORD dw = GetLastError();
+            KcwDebug() << "failed to decrease screen buffer height to" << bufferSize.Y << "Error:" << dw;
+        }
+    }
+
+    KcwDebug() << __FUNCTION__ << "ended!";
+    m_output.open(m_output.name());
+    ReleaseMutex(m_mutex);
+}
+
 COORD OutputReader::getCursorPosition() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -40,6 +136,9 @@ void OutputReader::init() {
     li.QuadPart = period * -10000LL; // 10 milliseconds
     SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
 
+    HWND hWnd = GetConsoleWindow();
+//     ShowWindow(hWnd, SW_HIDE);
+
     std::wstringstream wss;
     wss.str(L"");
     wss << L"kcwsh-setup-" << dwProcessId;
@@ -48,6 +147,15 @@ void OutputReader::init() {
         KcwDebug() << "failed to open setupEvent notifier:" << wss.str();
         return;
     }
+
+    wss.str(L"");
+    wss << L"kcwsh-shutdown-" << dwProcessId;
+//     KcwDebug() << "opening setupEvent:" << wss.str();
+    if(m_shutdownEvent.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open shutdownEvent notifier:" << wss.str();
+        return;
+    }
+    addCallback(m_shutdownEvent, CB(shutdown));
 
     wss.str(L"");
     wss << L"kcwsh-bufferSize-" << dwProcessId;
@@ -71,6 +179,7 @@ void OutputReader::init() {
         KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
         return;
     }
+    addCallback(m_bufferSizeChanged, CB(setConsoleSize));
 
     wss.str(L"");
     wss << L"kcwsh-bufferChanged-" << dwProcessId;
@@ -110,10 +219,10 @@ void OutputReader::init() {
     addCallback(m_exitEventOutput);
     ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
 
-    addCallback(m_timer, CB(OutputReader::readData));
+    addCallback(m_timer, CB(readData));
     if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
         m_bufferSizeCache = *m_bufferSize;
-        m_bufferSizeChanged.notify();
+//        m_bufferSizeChanged.notify();
     }
 
 //     KcwDebug() << "notifying setupEvent";
@@ -122,40 +231,45 @@ void OutputReader::init() {
 
 void OutputReader::readData() {
 //     KcwDebug() << "reading new Data!";
-    COORD size = *m_bufferSize;
-    COORD bufferOrigin; bufferOrigin.X = 0; bufferOrigin.Y = 0;
-    COORD bufferSize = getConsoleSize();
+    if(!m_output.opened()) {
+        KcwDebug() << __FUNCTION__ << "output is closed, leaving!";
+        return;
+    }
+
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "failed!";
+        return;
+    }
+
     COORD cursorPos = getCursorPosition();
+    if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {
+        *m_cursorPosition = cursorPos;
+        m_cursorPositionChanged.notify();
+    }
+
+    COORD size = *m_bufferSize;
+    COORD bufferOrigin; 
+    bufferOrigin.X = 0; bufferOrigin.Y = 0;
+    COORD bufferSize = getConsoleSize();
+
+    static COORD oldSize = bufferSize;
     static CHAR_INFO *buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
+    if(bufferSize != oldSize) {
+        delete[] buffer;
+        buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
+        oldSize = bufferSize;
+    }
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     std::wstringstream wss;
     GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
     sr = csbi.srWindow;
 
-    if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {
-        *m_cursorPosition = cursorPos;
-        m_cursorPositionChanged.notify();
-    }
-
     ReadConsoleOutput(m_consoleHdl, buffer, bufferSize, bufferOrigin, &sr);
-    if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
-        wss.str(L"");
-        wss << L"kcwsh-bufferMutex-" << ::GetCurrentProcessId();
-//         KcwDebug() << "waiting for mutex!";
-        WaitForSingleObject(m_mutex, INFINITE);
-        m_bufferSizeCache = *m_bufferSize;
-        m_bufferSizeChanged.notify();
-        KcwDebug() << "bufferSize changed!";
-        ReleaseMutex(m_mutex);
-    }
-
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
-        WaitForSingleObject(m_mutex, INFINITE);
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
-        ReleaseMutex(m_mutex);
         m_bufferChanged.notify();
-//         KcwDebug() << "output buffer changed!";
     };
+    ReleaseMutex(m_mutex);
 }
 

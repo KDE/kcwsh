@@ -43,6 +43,26 @@ COORD OutputWriter::bufferSize() const {
     return ret;
 }
 
+void OutputWriter::setBufferSize(COORD c) {
+    m_shutdownEvent.notify();
+    if(WaitForSingleObject(m_setupEvent, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "failed to wait for setup event!";
+        return;
+    }
+
+    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return;
+    }
+    KcwDebug() << __FUNCTION__ << c.X << "X" << c.Y;
+    *m_bufferSize = c;
+    KcwDebug() << "resizing output buffer:";
+    KcwDebug() << m_output.resize(c.X * c.Y);
+    ReleaseMutex(m_mutex);
+    m_bufferSizeChanged.notify();
+    KcwDebug() << __FUNCTION__ << "finished!";
+}
+
 void OutputWriter::init() {
 //     KcwDebug() << __FUNCTION__;
     std::wstringstream wss;
@@ -82,6 +102,20 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-shutdown-" << m_process->pid();
+    if(m_shutdownEvent.open(wss.str().c_str())) {
+        KcwDebug() << "failed to open shutdownEvent notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-setup-" << m_process->pid();
+    if(m_setupEvent.open(wss.str().c_str())) {
+        KcwDebug() << "failed to open setupEvent notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-exitEventOutput-" << m_process->pid();
     if(m_exitEventOutput.open(wss.str().c_str())) {
         KcwDebug() << "failed to open exitEventOutput notifier:" << wss.str();
@@ -102,7 +136,7 @@ void OutputWriter::init() {
         return;
     }
 
-    addCallback(m_bufferSizeChanged, CB(sizeChanged));
+//     addCallback(m_bufferSizeChanged, CB(sizeChanged));
     addCallback(m_bufferChanged, CB(bufferChanged));
     addCallback(m_cursorPositionChanged, CB(cursorPositionChanged));
 }
