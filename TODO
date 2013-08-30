@@ -1,4 +1,8 @@
 TODO:
+
+- fix crash if input is not ready yet?
+- on resize bufferSize and buffer are not in sync
+
 DONE - rename serverhandler to something more usefull
 DONE - replace clienthandler class with a more suitable one
 DONE * clienthandler should be the base class that handles the events only
@@ -6,6 +10,6 @@ DONE - reimplement a way to connect shell stdin to the stdin of the calling proc
 DONE * make it possible to connect either another console input queue or a Qt input queue to the target process
 DONE - implement outputwriter
 DONE - add a very simple way to output from the console buffer (consoleoutputwriter)
-- add the Qt way
-* find a way to transform Qt keyboard events into INPUT_RECORD structures (transform that into an input queue)
-* get a nice interface for the Terminal
+DONE - add the Qt way
+DONE * find a way to transform Qt keyboard events into INPUT_RECORD structures (transform that into an input queue)
+DONE * get a nice interface for the Terminal
