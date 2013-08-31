@@ -23,9 +23,7 @@ void ConsoleInputReader::transferData() {
         KcwDebug() << "failed to read console input!";
     } else {
 //         KcwDebug() << "read" << len << "records from stdin";
-        memcpy(m_input.data(), buffer, len*sizeof(INPUT_RECORD));
-        *m_inputSize = len;
-        m_bytesWritten.notify();
+        sendKeyboardEvents(buffer, len);
     }
     delete[] buffer;
 }

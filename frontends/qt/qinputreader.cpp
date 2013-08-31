@@ -22,8 +22,5 @@ void QtInputReader::transferData(QKeyEvent* event, bool keyDown) {
     ir.Event.KeyEvent.wVirtualScanCode = event->nativeScanCode();
     ir.Event.KeyEvent.uChar.UnicodeChar = static_cast<WCHAR>(event->text().utf16()[0]);
     ir.Event.KeyEvent.dwControlKeyState = event->nativeModifiers();
-
-    memcpy(m_input.data(), &ir, sizeof(INPUT_RECORD));
-    *m_inputSize = 1;
-    m_bytesWritten.notify();
+    sendKeyboardEvents(&ir, 1);
 }
