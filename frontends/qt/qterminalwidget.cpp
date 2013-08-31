@@ -78,6 +78,7 @@ TerminalWidget::TerminalWidget(QWidget* parent)
     setFont(QFont("Courier New"));
     startTerminal();
     setContextMenuPolicy(Qt::CustomContextMenu);
+    setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
 }
 
