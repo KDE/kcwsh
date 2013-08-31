@@ -63,5 +63,5 @@ void InputWriter::init() {
     KcwDebug() << "adding new callback:" << m_bytesWritten.handle() << "from object:" << this;
     addCallback(m_bytesWritten, CB(InputWriter::writeData));
     addCallback(m_exitEventInput);
-//    m_readyRead.notify();
+    m_readyRead.notify();
 }
