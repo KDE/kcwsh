@@ -4,6 +4,7 @@
 #include "kcwsh_export.h"
 
 #include <QWidget>
+#include <QString>
 
 class TerminalWidgetTerminal;
 
@@ -13,6 +14,7 @@ namespace QtFrontend {
 class KCWSHQT_EXPORT TerminalWidget : public QWidget {
         Q_OBJECT
     public:
+        TerminalWidget(const QString& shell, QWidget* parent = 0);
         TerminalWidget(QWidget* parent = 0);
         QSize minimumSizeHint() const;
         QSize minimumSize() const;
@@ -27,6 +29,7 @@ class KCWSHQT_EXPORT TerminalWidget : public QWidget {
         void keyPressEvent(QKeyEvent* event);
         void paintEvent(QPaintEvent* event);
         void resizeEvent(QResizeEvent* event);
+        QString m_shell;
         TerminalWidgetTerminal* t;
 };
 };

@@ -71,9 +71,19 @@ void TerminalWidgetTerminal::endTerminal() {
     qDebug() << "ending terminal!";
     Terminal::quit();
 }
-
+TerminalWidget::TerminalWidget(const QString& shell, QWidget* parent)
+: t(NULL)
+, m_shell(shell)
+, QWidget(parent) {
+    setFont(QFont("Courier New"));
+    startTerminal();
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    setFocusPolicy(Qt::StrongFocus);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
+}
 TerminalWidget::TerminalWidget(QWidget* parent)
 : t(NULL)
+, m_shell((getDefaultCmdInterpreter() + "\\cmd.exe").c_str())
 , QWidget(parent) {
     setFont(QFont("Courier New"));
     startTerminal();
@@ -98,7 +108,7 @@ void TerminalWidget::startTerminal() {
     connect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
     connect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
 
-    t->setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
+    t->setCmd(m_shell.toLatin1().data());
     t->start();
     COORD c;
     c.X = width() / fontMetrics().width("W");
