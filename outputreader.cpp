@@ -16,7 +16,7 @@ OutputReader::~OutputReader() {
 COORD OutputReader::getConsoleSize() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     ret.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     ret.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
     return ret;
@@ -52,11 +52,11 @@ void OutputReader::setConsoleSize() {
         return;
     }
 
-    COORD maxSize = GetLargestConsoleWindowSize(m_consoleHdl);
+    COORD maxSize = GetLargestConsoleWindowSize(GetStdHandle(STD_OUTPUT_HANDLE));
     KcwDebug() << "maximumSize:" << maxSize.X << "X" << maxSize.Y;
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     sr = csbi.srWindow;
 
     COORD bufferSize = csbi.dwSize;
@@ -74,40 +74,40 @@ void OutputReader::setConsoleSize() {
     KcwDebug() << "requested size:" << m_bufferSizeCache.X << "X" << m_bufferSizeCache.Y;
     if(oldSize.X < m_bufferSizeCache.X) {
         bufferSize.X = m_bufferSizeCache.X;
-        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+        if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to increase screen buffer width to" << bufferSize.X << "Error:" << dw;
         }
     }
     if(oldSize.Y < m_bufferSizeCache.Y) {
         bufferSize.Y = m_bufferSizeCache.Y;
-        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+        if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to increase screen buffer height to" << bufferSize.Y << "Error:" << dw;
         }
     }
 
     sr.Bottom = sr.Top + m_bufferSizeCache.Y - 1;
-    if(!SetConsoleWindowInfo(m_consoleHdl, TRUE, &sr)) {
+    if(!SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &sr)) {
         DWORD dw = GetLastError();
         KcwDebug() << "failed to set console height!" << dw;
     }
     sr.Right = sr.Left + m_bufferSizeCache.X - 1;
-    if(!SetConsoleWindowInfo(m_consoleHdl, TRUE, &sr)) {
+    if(!SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &sr)) {
         DWORD dw = GetLastError();
         KcwDebug() << "failed to set console width!" << dw;
     }
 
     if(oldSize.X > m_bufferSizeCache.X) {
         bufferSize.X = m_bufferSizeCache.X;
-        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+        if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to decrease screen buffer width to" << bufferSize.X << "Error:" << dw;
         }
     }
     if(oldSize.Y > m_bufferSizeCache.Y) {
         bufferSize.Y = m_bufferSizeCache.Y;
-        if(!SetConsoleScreenBufferSize(m_consoleHdl, bufferSize)) {
+        if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to decrease screen buffer height to" << bufferSize.Y << "Error:" << dw;
         }
@@ -121,7 +121,7 @@ void OutputReader::setConsoleSize() {
 COORD OutputReader::getCursorPosition() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     ret.Y = csbi.dwCursorPosition.Y - csbi.srWindow.Top;
     ret.X = csbi.dwCursorPosition.X;
     return ret;
@@ -262,10 +262,10 @@ void OutputReader::readData() {
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     std::wstringstream wss;
-    GetConsoleScreenBufferInfo(m_consoleHdl, &csbi);
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     sr = csbi.srWindow;
 
-    ReadConsoleOutput(m_consoleHdl, buffer, bufferSize, bufferOrigin, &sr);
+    ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE), buffer, bufferSize, bufferOrigin, &sr);
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
         m_bufferChanged.notify();
