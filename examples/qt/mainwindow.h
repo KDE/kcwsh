@@ -7,6 +7,7 @@
 #include <QList>
 
 class QTabWidget;
+class QComboBox;
 
 class MainWindow : public QWidget {
     Q_OBJECT
@@ -17,5 +18,6 @@ class MainWindow : public QWidget {
     private:
         QList<KcwSH::QtFrontend::TerminalWidget*> m_terminals;
         QTabWidget* m_tabWidget;
+        QComboBox* m_shellSelector;
 };
 #endif /* mainwindow_h */

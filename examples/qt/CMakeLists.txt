@@ -19,3 +19,5 @@ target_link_libraries(qkcwsh ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTMAI
 install(TARGETS qkcwsh RUNTIME DESTINATION bin
                        LIBRARY DESTINATION lib
                        ARCHIVE DESTINATION lib)
+
+install(FILES list-add.png DESTINATION share/qkcwsh/icons)
