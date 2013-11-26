@@ -305,15 +305,15 @@ void OutputReader::readData() {
     }
 
     // get current console process list
-    DWORD  *pids, len = 10;
-    pids = new DWORD[len];
-    DWORD l = GetConsoleProcessList(pids, len);
-    if(l >= len) {
+    DWORD  *pids, plen = 10;
+    pids = new DWORD[plen];
+    DWORD pl = GetConsoleProcessList(pids, plen);
+    if(pl >= plen) {
         delete[] pids;
-        pids = new DWORD[l];
-        l = GetConsoleProcessList(pids, l);
+        pids = new DWORD[pl];
+        pl = GetConsoleProcessList(pids, pl);
     }
-    if(l > 0) *m_foregroundPid = pids[l - 1];
+    if(pl > 0) *m_foregroundPid = pids[pl - 1];
     delete[] pids;
 
     COORD cursorPos = getCursorPosition();
