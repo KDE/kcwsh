@@ -27,6 +27,7 @@ class OutputReader : public KcwEventLoop {
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
         KcwSharedMemory<WCHAR> m_title;
+        KcwSharedMemory<int> m_foregroundPid;
 
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;

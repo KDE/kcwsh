@@ -176,6 +176,10 @@ int Terminal::pid() const {
     return m_process.pid();
 }
 
+int Terminal::foregroundPid() const {
+    return m_outputWriter->foregroundPid();
+}
+
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
         KcwDebug() << "no inputreader or outputwriter set!";

@@ -30,11 +30,14 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
 
         void setTitle(const std::wstring& t);
         std::wstring title() const;
+
+        int foregroundPid() const;
     protected:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
         KcwSharedMemory<WCHAR> m_title;
+        KcwSharedMemory<DWORD> m_foregroundPid;
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;
         KcwNotifier m_cursorPositionChanged;

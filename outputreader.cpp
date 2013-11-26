@@ -239,6 +239,13 @@ void OutputReader::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-foregroundPid-" << dwProcessId;
+    if(m_foregroundPid.create(wss.str().c_str(), 1) != 0) {
+        KcwDebug() << "failed to create foregroundPid shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-exitEventOutput-" << dwProcessId;
     if(m_exitEventOutput.open(wss.str().c_str())) {
         KcwDebug() << "failed to open exitEventOutput notifier:" << wss.str();
@@ -296,6 +303,18 @@ void OutputReader::readData() {
         memcpy(m_title.data(), t, sizeof(WCHAR) * (l + 1));
         m_titleChanged.notify();
     }
+
+    // get current console process list
+    DWORD  *pids, len = 10;
+    pids = new DWORD[len];
+    DWORD l = GetConsoleProcessList(pids, len);
+    if(l >= len) {
+        delete[] pids;
+        pids = new DWORD[l];
+        l = GetConsoleProcessList(pids, l);
+    }
+    if(l > 0) *m_foregroundPid = pids[l - 1];
+    delete[] pids;
 
     COORD cursorPos = getCursorPosition();
     if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {

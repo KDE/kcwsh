@@ -84,6 +84,17 @@ std::wstring OutputWriter::title() const {
     return ret;
 }
 
+int OutputWriter::foregroundPid() const {
+    int ret;
+    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return 0;
+    }
+    ret = *m_foregroundPid.data();
+    ReleaseMutex(m_mutex);
+    return ret;
+}
+
 void OutputWriter::init() {
 //     KcwDebug() << __FUNCTION__;
     std::wstringstream wss;
@@ -168,6 +179,13 @@ void OutputWriter::init() {
     wss << L"kcwsh-title-" << m_process->pid();
     if(m_title.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open title shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-foregroundPid-" << m_process->pid();
+    if(m_foregroundPid.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open foregroundPid shared memory:" << wss.str();
         return;
     }
 

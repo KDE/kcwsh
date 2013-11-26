@@ -68,6 +68,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         std::wstring title() const;
 
         int pid() const;
+        int foregroundPid() const;
 
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);
