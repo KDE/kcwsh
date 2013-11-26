@@ -1,0 +1,11 @@
+1) Fenster in beide Richtungen vergrößern:
+- ScreenBuffer auf entsprechende Größe vergrößern
+- Fenster vergrößern
+2) Fenster in eine Richtung (x) vergrößern und in zweite Richtung (y) verkleinern:
+- ScreenBuffer in Richtung x vergrößern
+- Fenster in Richtung x vergrößern
+- Fenster in Richtung y verkleinern
+- ScreenBuffer in Richtung y verkleinern
+3) Fenster in beide Richtungen verkleinern:
+- Fenster in beide Richtungen verkleinern
+- ScreenBuffer in beide Richtungen verkleinern
