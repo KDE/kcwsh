@@ -172,6 +172,10 @@ bool Terminal::active() const {
     return m_active;
 }
 
+int Terminal::pid() const {
+    return m_process->pid();
+}
+
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
         KcwDebug() << "no inputreader or outputwriter set!";

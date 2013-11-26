@@ -66,6 +66,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         void setTitle(const std::wstring& t);
         std::wstring title() const;
 
+        int pid() const;
+
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);
 
