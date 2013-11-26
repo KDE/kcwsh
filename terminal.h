@@ -6,6 +6,7 @@
 #include <kcwthread.h>
 #include <kcwprocess.h>
 #include <kcwnotifier.h>
+#include <windows.h>
 
 #include "kcwsh_export.h"
 

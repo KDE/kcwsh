@@ -173,7 +173,7 @@ bool Terminal::active() const {
 }
 
 int Terminal::pid() const {
-    return m_process->pid();
+    return m_process.pid();
 }
 
 DWORD Terminal::run() {

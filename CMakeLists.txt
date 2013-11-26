@@ -45,6 +45,7 @@ set(kcwsh_HDRS
     terminal.h
     outputwriter.h
     inputreader.h
+    kcwsh_export.h
 )
 
 set(kcwsh_SRCS
