@@ -9,6 +9,22 @@ if(BUILD_TESTS)
     enable_testing()
 endif(BUILD_TESTS)
 
+set(KCWSH_MAJOR_VERSION 0)
+set(KCWSH_MINOR_VERSION 1)
+set(KCWSH_PATCH_VERSION 0)
+
+set(KCWSH_VERSION "${KCWSH_MAJOR_VERSION}.${KCWSH_MINOR_VERSION}.${KCWSH_PATCH_VERSION}")
+
+configure_file(cmake/KcwSHConfigVersion.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/KcwSHConfigVersion.cmake" @ONLY)
+
+# Install the KcwSHConfig.cmake and KcwSHConfigVersion.cmake
+install(FILES
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/KcwSHConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/KcwSHConfigVersion.cmake"
+  DESTINATION lib/cmake/kcwsh COMPONENT dev)
+
+
 # required to check whether to build the kcwshtest
 find_package(Qt4)
 
@@ -47,9 +63,16 @@ add_library(kcwsh SHARED ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
 set_target_properties(kcwsh PROPERTIES PREFIX "")
 
-install(TARGETS kcwsh RUNTIME DESTINATION bin
+install(TARGETS kcwsh EXPORT KcwSHTargets
+                      RUNTIME DESTINATION bin
                       LIBRARY DESTINATION bin
                       ARCHIVE DESTINATION lib)
+install(FILES ${kcwsh_HDRS} DESTINATION include/kcwsh)
+
+export(TARGETS kcwsh FILE "${CMAKE_CURRENT_BINARY_DIR}/KcwSHTargets.cmake")
+export(PACKAGE kcwsh)
+
+install(EXPORT KcwSHTargets DESTINATION lib/cmake/kcwsh COMPONENT devel)
 
 add_subdirectory(frontends)
 add_subdirectory(examples)
