@@ -7,6 +7,8 @@ OutputReader::OutputReader()
 : m_consoleHdl(GetStdHandle(STD_OUTPUT_HANDLE))
 , KcwEventLoop() {
     m_bufferSizeCache.X = 1; m_bufferSizeCache.Y = 1;
+    COORD c;
+    c=GetConsoleFontSize(m_consoleHdl, 1);
 }
 
 OutputReader::~OutputReader() {
@@ -127,6 +129,15 @@ COORD OutputReader::getCursorPosition() const {
     return ret;
 }
 
+void OutputReader::setTitle() {
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "failed!";
+        return;
+    }
+    SetConsoleTitle(m_title.data());
+    ReleaseMutex(m_mutex);
+}
+
 void OutputReader::init() {
     DWORD dwProcessId = ::GetCurrentProcessId();
 
@@ -145,6 +156,23 @@ void OutputReader::init() {
 //     KcwDebug() << "opening setupEvent:" << wss.str();
     if(m_setupEvent.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open setupEvent notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-titleChangeRequested-" << dwProcessId;
+//     KcwDebug() << "opening titleChangeRequested:" << wss.str();
+    if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
+        return;
+    }
+    addCallback(m_titleChangeRequested, CB(setTitle));
+
+    wss.str(L"");
+    wss << L"kcwsh-titleChanged-" << dwProcessId;
+//     KcwDebug() << "opening titleChanged:" << wss.str();
+    if(m_titleChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open titleChanged notifier:" << wss.str();
         return;
     }
 
@@ -203,6 +231,14 @@ void OutputReader::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-title-" << dwProcessId;
+    // this is the maximum size (64KB)
+    if(m_title.create(wss.str().c_str(), 4096) != 0) {
+        KcwDebug() << "failed to create title shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-exitEventOutput-" << dwProcessId;
     if(m_exitEventOutput.open(wss.str().c_str())) {
         KcwDebug() << "failed to open exitEventOutput notifier:" << wss.str();
@@ -227,6 +263,14 @@ void OutputReader::init() {
 
 //     KcwDebug() << "notifying setupEvent";
     m_setupEvent.notify();
+
+    ZeroMemory(m_title.data(), 4096);
+    WCHAR t[4096];
+    ZeroMemory(t, 4096);
+    DWORD s = GetConsoleTitle(t, 4096);
+    KcwDebug() << "Title:" << std::wstring(t) << s;
+    memcpy(m_title.data(), t, (s + 1) * sizeof(WCHAR));
+    m_titleChanged.notify();
 }
 
 void OutputReader::readData() {
@@ -239,6 +283,18 @@ void OutputReader::readData() {
     if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
         KcwDebug() << __FUNCTION__ << "failed!";
         return;
+    }
+
+    static WCHAR title[4096];
+    static int titleLength = 0;
+    WCHAR t[4096];
+    ZeroMemory(t, 4096);
+    DWORD l = GetConsoleTitle(t, 4096);
+    if(l != titleLength || memcmp(title, t, sizeof(WCHAR) * l) != 0) {
+        titleLength = l;
+        memcpy(title, t, sizeof(WCHAR) * l);
+        memcpy(m_title.data(), t, sizeof(WCHAR) * (l + 1));
+        m_titleChanged.notify();
     }
 
     COORD cursorPos = getCursorPosition();

@@ -76,6 +76,17 @@ void Terminal::sendCommand(const std::wstring& c) {
     m_inputReader->sendCommand(c);
 }
 
+void Terminal::setTitle(const std::wstring& t) {
+    // FIXME: make sure that the title is less then 4096 chars long
+    // this is the maximum title length
+    KcwDebug() << __FUNCTION__ << t;
+    m_outputWriter->setTitle(t);
+}
+
+std::wstring Terminal::title() const {
+    return m_outputWriter->title();
+}
+
 COORD Terminal::terminalSize() const {
     COORD ret = {};
     if(isSetup()) {
@@ -94,6 +105,10 @@ void Terminal::bufferChanged() {
 }
 
 void Terminal::cursorPositionChanged() {
+    KcwDebug() << __FUNCTION__;
+}
+
+void Terminal::titleChanged() {
     KcwDebug() << __FUNCTION__;
 }
 
@@ -187,6 +202,14 @@ DWORD Terminal::run() {
         KcwDebug() << "could not create setupEvent!";
         return -1;
     };
+
+    wss.str(L"");
+    wss << "kcwsh-titleChanged-" << m_process.pid();
+    if(m_titleChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "could not create titleChanged!";
+        return -1;
+    };
+    addCallback(m_titleChanged, CB(titleChanged));
 
     // 2) inject this very dll into that process
     KcwInjector injector;

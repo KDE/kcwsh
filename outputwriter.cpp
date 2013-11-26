@@ -63,6 +63,27 @@ void OutputWriter::setBufferSize(COORD c) {
     KcwDebug() << __FUNCTION__ << "finished!";
 }
 
+void OutputWriter::setTitle(const std::wstring& t) {
+    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return;
+    }
+    memcpy(m_title.data(), t.data(), t.length());
+    ReleaseMutex(m_mutex);
+    m_titleChangeRequested.notify();
+}
+
+std::wstring OutputWriter::title() const {
+    std::wstring ret;
+    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return std::wstring();
+    }
+    ret = std::wstring(m_title.data());
+    ReleaseMutex(m_mutex);
+    return ret;
+}
+
 void OutputWriter::init() {
 //     KcwDebug() << __FUNCTION__;
     std::wstringstream wss;
@@ -102,6 +123,20 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-titleChangeRequested-" << m_process->pid();
+    if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-titleChanged-" << m_process->pid();
+    if(m_titleChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open titleChanged notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-shutdown-" << m_process->pid();
     if(m_shutdownEvent.open(wss.str().c_str())) {
         KcwDebug() << "failed to open shutdownEvent notifier:" << wss.str();
@@ -126,6 +161,13 @@ void OutputWriter::init() {
     wss << L"kcwsh-output-" << m_process->pid();
     if(m_output.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open output shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-title-" << m_process->pid();
+    if(m_title.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open title shared memory:" << wss.str();
         return;
     }
 

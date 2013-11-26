@@ -50,6 +50,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         virtual KCW_CALLBACK(Terminal, activate);
         virtual KCW_CALLBACK(Terminal, deactivate);
 
+        virtual KCW_CALLBACK(Terminal, titleChanged);
+
         void setActive(bool t);
         bool active() const;
 
@@ -60,6 +62,9 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         void sendText(const std::wstring& t);
         void sendCommand(const std::wstring& c);
+
+        void setTitle(const std::wstring& t);
+        std::wstring title() const;
 
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);
@@ -80,6 +85,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         KcwProcess m_process;
         KcwNotifier m_exitEvent;
         KcwNotifier m_setupEvent;
+        KcwNotifier m_titleChanged;
 };
 };
 #endif /* kcwsh_terminal */

@@ -21,10 +21,12 @@ class OutputReader : public KcwEventLoop {
         KCW_CALLBACK(OutputReader, setConsoleSize);
         KCW_CALLBACK(OutputReader, adaptBufferSize);
         KCW_CALLBACK(OutputReader, shutdown);
+        KCW_CALLBACK(OutputReader, setTitle);
     private:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
+        KcwSharedMemory<WCHAR> m_title;
 
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;
@@ -32,6 +34,8 @@ class OutputReader : public KcwEventLoop {
         KcwNotifier m_setupEvent;
         KcwNotifier m_shutdownEvent;
         KcwNotifier m_exitEventOutput;
+        KcwNotifier m_titleChangeRequested;
+        KcwNotifier m_titleChanged;
 
         COORD m_bufferSizeCache;
 

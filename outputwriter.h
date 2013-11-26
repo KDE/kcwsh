@@ -27,16 +27,22 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
 
         COORD bufferSize() const;
         void setBufferSize(COORD c);
+
+        void setTitle(const std::wstring& t);
+        std::wstring title() const;
     protected:
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
+        KcwSharedMemory<WCHAR> m_title;
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;
         KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_exitEventOutput;
         KcwNotifier m_shutdownEvent;
         KcwNotifier m_setupEvent;
+        KcwNotifier m_titleChangeRequested;
+        KcwNotifier m_titleChanged;
 
         HANDLE m_mutex;
 
