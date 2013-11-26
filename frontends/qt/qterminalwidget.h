@@ -19,6 +19,13 @@ class KCWSHQT_EXPORT TerminalWidget : public QWidget {
         QSize minimumSizeHint() const;
         QSize minimumSize() const;
         QSize sizeHint() const;
+
+        QString title() const;
+        void setTitle(const QString& t);
+
+    Q_SIGNALS:
+        void titleChanged(QString t);
+
     private Q_SLOTS:
         void resizeTerminal();
         void startTerminal();

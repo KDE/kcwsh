@@ -37,12 +37,14 @@ class TerminalWidgetTerminal : public QObject, public Terminal {
         void bufferChanged();
         void cursorPositionChanged();
         void hasQuit();
+        void titleChanged();
 
     Q_SIGNALS:
         void terminalQuit();
         void terminalSizeChanged();
         void terminalBufferChanged();
         void terminalCursorPositionChanged();
+        void terminalTitleChanged(QString t);
 
     public Q_SLOTS:
         void endTerminal();

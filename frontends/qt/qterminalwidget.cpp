@@ -56,6 +56,11 @@ void TerminalWidgetTerminal::cursorPositionChanged() {
     emit terminalCursorPositionChanged();
 }
 
+void TerminalWidgetTerminal::titleChanged() {
+    qDebug() << __FUNCTION__ << QString::fromUtf16(reinterpret_cast<const ushort*>(title().data()));
+    emit terminalTitleChanged(QString::fromUtf16(reinterpret_cast<const ushort*>(title().data())));
+}
+
 /*void TerminalWidgetTerminal::quit() {
     qDebug() << "TerminalWidgetTerminal::quit";
     Terminal::quit();
@@ -85,7 +90,20 @@ TerminalWidget::TerminalWidget(QWidget* parent)
 : t(NULL)
 , m_shell((getDefaultCmdInterpreter() + "\\cmd.exe").c_str())
 , QWidget(parent) {
-    setFont(QFont("Courier New"));
+    QFont font("Lucida Console");
+    QFontMetrics fm(font);
+    qDebug() << __FUNCTION__ << fm.width("WWWWW WWWWW") << fm.width("||||| |||||") << fm.averageCharWidth();
+    qDebug() << font.letterSpacing();
+//     font.setBold(true);
+//     font.setWeight(QFont::DemiBold);
+//    font.setPointSizeF(font.pointSizeF() + .1);
+//     font.setLetterSpacing(QFont::AbsoluteSpacing, .4);
+    font.setPixelSize(14);
+//     font.setStretch(QFont::SemiExpanded);
+//     qDebug() << font.letterSpacing();
+    qDebug() << __FUNCTION__ << fm.width("W") << fm.averageCharWidth();
+    qDebug() << fm.height() << "X" << fm.width("W");
+    setFont(font);
     startTerminal();
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::StrongFocus);
@@ -99,6 +117,7 @@ void TerminalWidget::startTerminal() {
         disconnect(t, SIGNAL(terminalCursorPositionChanged()), this, SLOT(repaint()));
         disconnect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
         disconnect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
+        disconnect(t, SIGNAL(terminalTitleChanged(QString)), this, SIGNAL(titleChanged(QString)));
         delete t;
     }
     t = new TerminalWidgetTerminal;
@@ -107,6 +126,7 @@ void TerminalWidget::startTerminal() {
     connect(t, SIGNAL(terminalCursorPositionChanged()), this, SLOT(repaint()));
     connect(qApp, SIGNAL(aboutToQuit()), t, SLOT(endTerminal()));
     connect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
+    connect(t, SIGNAL(terminalTitleChanged(QString)), this, SIGNAL(titleChanged(QString)));
 
     t->setCmd(m_shell.toLatin1().data());
     t->start();
@@ -163,6 +183,14 @@ QSize TerminalWidget::minimumSize() const {
     }
     QSize size(fontMetrics().width("W") * c.X, fontMetrics().height() * c.Y);
     return size;
+}
+
+QString TerminalWidget::title() const {
+    return QString::fromUtf16(reinterpret_cast<const ushort*>(t->title().data()));
+}
+
+void TerminalWidget::setTitle(const QString& title) {
+    t->setTitle(std::wstring((WCHAR*)title.utf16()));
 }
 
 void TerminalWidget::showContextMenu(const QPoint& pos)
