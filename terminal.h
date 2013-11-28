@@ -73,6 +73,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         void setInitialWorkingDirectory(const std::wstring& iwd);
 
+        void setEnvironment(KcwProcess::KcwProcessEnvironment env);
+
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);
 

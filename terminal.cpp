@@ -184,12 +184,18 @@ void Terminal::setInitialWorkingDirectory(const std::wstring& iwd) {
     m_process.setInitialWorkingDirectory(iwd);
 }
 
+void setEnvironment(KcwProcess::KcwProcessEnvironment env) {
+    m_process.setStartupEnvironment(env);
+}
 
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
         KcwDebug() << "no inputreader or outputwriter set!";
         return -1;
     }
+
+    // we might not want to show our process ;-)
+//     m_process.setStartupAsHidden(true);
 
     // 1) create a shell process in suspended mode (default)
     m_process.start();
