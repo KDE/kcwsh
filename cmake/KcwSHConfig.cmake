@@ -9,5 +9,7 @@ if(NOT TARGET kcwsh)
     include(${KCWSH_CMAKE_DIR}/KcwSHTargets.cmake)
 endif()
 
-set(KCWSH_INCLUDE_DIRS ${KCWSH_CMAKE_DIR}/../../../include/kcwsh)
-set(KCWSH_LIBRARIES kcwsh)
+find_package(Kcw REQUIRED)
+
+set(KCWSH_INCLUDE_DIRS ${KCW_INCLUDE_DIRS} ${KCWSH_CMAKE_DIR}/../../../include/kcwsh)
+set(KCWSH_LIBRARIES ${KCW_LIBRARIES} kcwsh)
