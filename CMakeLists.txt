@@ -13,6 +13,10 @@ set(KCWSH_MAJOR_VERSION 0)
 set(KCWSH_MINOR_VERSION 1)
 set(KCWSH_PATCH_VERSION 0)
 
+if(MSVC)
+    add_definitions(/Zc:wchar_t-)
+endif()
+
 set(KCWSH_VERSION "${KCWSH_MAJOR_VERSION}.${KCWSH_MINOR_VERSION}.${KCWSH_PATCH_VERSION}")
 
 configure_file(cmake/KcwSHConfigVersion.cmake.in
