@@ -15,14 +15,14 @@ extern HINSTANCE s_module;
 using namespace KcwSH;
 
 Terminal::Terminal()
-: m_process("cmd.exe")
+: m_process(L"cmd.exe")
 , m_setup(false)
 , m_active(false)
 , KcwThread() {
 }
 
 Terminal::Terminal(InputReader* ir, OutputWriter* ow)
-: m_process("cmd.exe")
+: m_process(L"cmd.exe")
 , m_setup(false)
 , m_active(false)
 , m_inputReader(ir)
@@ -44,11 +44,11 @@ std::wstring Terminal::getModulePath(HMODULE hModule) {
     return strPath.substr(0, strPath.rfind('\\'));
 }
 
-void Terminal::setCmd(const std::string& _cmd) {
+void Terminal::setCmd(const std::wstring& _cmd) {
     m_process.setCmd(_cmd);
 }
 
-std::string Terminal::cmd() const {
+std::wstring Terminal::cmd() const {
     return m_process.cmd();
 }
 
@@ -179,6 +179,11 @@ int Terminal::pid() const {
 int Terminal::foregroundPid() const {
     return m_outputWriter->foregroundPid();
 }
+
+void Terminal::setInitialWorkingDirectory(const std::wstring& iwd) {
+    m_process.setInitialWorkingDirectory(iwd);
+}
+
 
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {

@@ -26,19 +26,19 @@ void usage() {
          << "Redistributable under GPLv3" << std::endl;
 }
 
-std::string getDefaultCmdInterpreter() {
-    CHAR szPath[MAX_PATH];
+std::wstring getDefaultCmdInterpreter() {
+    WCHAR szPath[MAX_PATH];
 
-    if(SUCCEEDED(SHGetFolderPathA(NULL,
+    if(SUCCEEDED(SHGetFolderPathW(NULL,
                                  CSIDL_SYSTEM|CSIDL_FLAG_CREATE,
                                  NULL,
                                  0,
                                  szPath)))
     {
-        std::string ret(szPath);
+        std::wstring ret(szPath);
         return ret;
     }
-    return std::string();
+    return std::wstring();
 }
 
 int main(int argc, char **argv) {
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
     if(g_debug) std::cout << "enabled debug mode!" << std::endl;
     ConsoleTerminal term;
-    term.setCmd(getDefaultCmdInterpreter() + "\\cmd.exe");
+    term.setCmd(getDefaultCmdInterpreter() + L"\\cmd.exe");
     term.start();
     app.addCallback(term.exitEvent());
     app.exec();

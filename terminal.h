@@ -2,6 +2,7 @@
 #define kcwsh_terminal
 
 #include <iostream>
+#include <string>
 
 #include <kcwthread.h>
 #include <kcwprocess.h>
@@ -20,8 +21,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         Terminal();
         ~Terminal();
 
-        void setCmd(const std::string& _cmd);
-        std::string cmd() const;
+        void setCmd(const std::wstring& _cmd);
+        std::wstring cmd() const;
 
         void setInputReader(InputReader* reader);
         void setOutputWriter(OutputWriter* writer);
@@ -69,6 +70,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         int pid() const;
         int foregroundPid() const;
+
+        void setInitialWorkingDirectory(const std::wstring& iwd);
 
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);

@@ -128,7 +128,7 @@ void TerminalWidget::startTerminal() {
     connect(t, SIGNAL(terminalQuit()), this, SLOT(startTerminal()));
     connect(t, SIGNAL(terminalTitleChanged(QString)), this, SIGNAL(titleChanged(QString)));
 
-    t->setCmd(m_shell.toLatin1().data());
+    t->setCmd(reinterpret_cast<const WCHAR*>(m_shell.utf16()));
     t->start();
     COORD c;
     c.X = width() / fontMetrics().width("W");
