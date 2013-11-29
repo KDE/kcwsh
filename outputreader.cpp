@@ -3,16 +3,73 @@
 #include <kcwdebug.h>
 #include <windows.h>
 
+struct CONSOLE_FONT
+{
+    DWORD index;
+    COORD dim;
+};
+
+BOOL (WINAPI *SetConsoleFont)(HANDLE, DWORD);
+BOOL (WINAPI *GetConsoleFontInfo)(HANDLE, BOOL, DWORD, CONSOLE_FONT*);
+DWORD (WINAPI *GetNumberOfConsoleFonts)();
+
+template<typename pfn_t>
+inline bool LoadFunc(HMODULE hmod, const char *name, pfn_t &fn)
+{
+    fn = (pfn_t)GetProcAddress(hmod, name);
+    return fn != 0;
+}
+
+
 OutputReader::OutputReader()
 : m_consoleHdl(GetStdHandle(STD_OUTPUT_HANDLE))
 , KcwEventLoop() {
     m_bufferSizeCache.X = 1; m_bufferSizeCache.Y = 1;
+    // TODO: if this fails, say something
+    minimizeConsoleFont();
     COORD c;
     c=GetConsoleFontSize(m_consoleHdl, 1);
 }
 
 OutputReader::~OutputReader() {
 //     KcwDebug() << __FUNCTION__;
+}
+
+bool OutputReader::minimizeConsoleFont() {
+    char title[MAX_PATH];
+
+    // Undocumented API's
+    HMODULE hmod = ::GetModuleHandleA("KERNEL32.DLL");
+    if (!hmod ||
+        !LoadFunc(hmod, "SetConsoleFont", SetConsoleFont) ||
+        !LoadFunc(hmod, "GetConsoleFontInfo", GetConsoleFontInfo) ||
+        !LoadFunc(hmod, "GetNumberOfConsoleFonts", GetNumberOfConsoleFonts)) {
+        KcwDebug() << "Failed to load API(s): " << ::GetLastError() << endl;
+        return false;
+    }
+
+    // number of console fonts
+    const DWORD MAX_FONTS = 40;
+    DWORD num_fonts = GetNumberOfConsoleFonts();
+    if (num_fonts > MAX_FONTS)
+        num_fonts = MAX_FONTS;
+
+    CONSOLE_FONT fonts[MAX_FONTS];
+    ZeroMemory(fonts, sizeof(fonts));
+    GetConsoleFontInfo(m_consoleHdl, 0, num_fonts, fonts);
+
+    for (DWORD n = 0; n < num_fonts; ++n) {
+        fonts[n].dim = GetConsoleFontSize(m_consoleHdl, fonts[n].index);
+
+//         KcwDebug() << "(" << n << "):" << fonts[n].index << fonts[n].dim.X << fonts[n].dim.Y;
+        if (fonts[n].dim.X == 4 && fonts[n].dim.Y == 6) {
+            SetConsoleFont(m_consoleHdl, fonts[n].index);
+            return true;
+        }
+    }
+
+    KcwDebug() << "failed to find minizable console font!";
+    return false;
 }
 
 COORD OutputReader::getConsoleSize() const {

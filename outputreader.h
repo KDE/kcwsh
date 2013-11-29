@@ -23,6 +23,7 @@ class OutputReader : public KcwEventLoop {
         KCW_CALLBACK(OutputReader, shutdown);
         KCW_CALLBACK(OutputReader, setTitle);
     private:
+        bool minimizeConsoleFont();
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
