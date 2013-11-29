@@ -35,6 +35,22 @@ void OutputWriter::cursorPositionChanged() {
     m_term->cursorPositionChanged();
 }
 
+COORD OutputWriter::cursorPosition() const {
+    COORD ret;
+    memcpy(&ret, m_cursorPosition.data(), sizeof(COORD));
+    return ret;
+}
+
+void OutputWriter::setCursorPosition(COORD c) {
+    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return;
+    }
+    *m_cursorPosition = c;
+    ReleaseMutex(m_mutex);
+    m_cursorPositionChanged.notify();
+}
+
 COORD OutputWriter::bufferSize() const {
     COORD ret;
 //     KcwDebug() << "before the crash:";
@@ -62,6 +78,20 @@ void OutputWriter::setBufferSize(COORD c) {
     m_bufferSizeChanged.notify();
     KcwDebug() << __FUNCTION__ << "finished!";
 }
+
+WCHAR OutputWriter::at(COORD c) const {
+    CHAR_INFO ci;
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return 0;
+    }
+    COORD bufSize;
+    memcpy(&bufSize, m_bufferSize.data(), sizeof(COORD));
+    memcpy(&ci, m_output.data() + (bufSize.X * c.X + c.Y), sizeof(CHAR_INFO));
+    ReleaseMutex(m_mutex);
+    return ci.Char.UnicodeChar;
+}
+
 
 void OutputWriter::setTitle(const std::wstring& t) {
     if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
