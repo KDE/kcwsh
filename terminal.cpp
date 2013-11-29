@@ -14,10 +14,13 @@ extern HINSTANCE s_module;
 
 using namespace KcwSH;
 
+COORD termDefaultSize = { 80, 25 };
+
 Terminal::Terminal()
 : m_process(L"cmd.exe")
 , m_setup(false)
 , m_active(false)
+, m_termSize(termDefaultSize)
 , KcwThread() {
 }
 
@@ -25,6 +28,7 @@ Terminal::Terminal(InputReader* ir, OutputWriter* ow)
 : m_process(L"cmd.exe")
 , m_setup(false)
 , m_active(false)
+, m_termSize(termDefaultSize)
 , m_inputReader(ir)
 , m_outputWriter(ow)
 , KcwThread() {
@@ -152,7 +156,10 @@ void Terminal::deactivate() {
 
 void Terminal::setTerminalSize(COORD c) {
 //     KcwDebug() << __FUNCTION__ << c.X << "X" << c.Y;
-    if(isSetup()) m_outputWriter->setBufferSize(c);
+    if(isSetup()) {
+        m_outputWriter->setBufferSize(c);
+    } else
+        m_termSize = c;
 }
 
 void Terminal::setActive(bool t) {
@@ -184,7 +191,7 @@ void Terminal::setInitialWorkingDirectory(const std::wstring& iwd) {
     m_process.setInitialWorkingDirectory(iwd);
 }
 
-void setEnvironment(KcwProcess::KcwProcessEnvironment env) {
+void Terminal::setEnvironment(KcwProcess::KcwProcessEnvironment env) {
     m_process.setStartupEnvironment(env);
 }
 
@@ -267,9 +274,8 @@ DWORD Terminal::run() {
     m_outputWriter->setProcess(&m_process);
     m_outputWriter->init();
     m_outputWriter->start();
-    COORD c;
-    c.X = 80; c.Y = 25;
-    m_outputWriter->setBufferSize(c);
+
+    m_outputWriter->setBufferSize(m_termSize);
 
     m_process.resume();
     return KcwEventLoop::exec();

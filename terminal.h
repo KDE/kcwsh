@@ -88,6 +88,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         HANDLE m_inputWriter;
         HANDLE m_outputReader;
+        COORD m_termSize;
 
         InputReader *m_inputReader;
         OutputWriter *m_outputWriter;
