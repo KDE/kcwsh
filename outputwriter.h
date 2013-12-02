@@ -34,6 +34,7 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         void setTitle(const std::wstring& t);
         std::wstring title() const;
         WCHAR at(COORD c) const;
+        WORD attributesAt(COORD c) const;
 
         int foregroundPid() const;
     protected:

@@ -92,6 +92,20 @@ WCHAR OutputWriter::at(COORD c) const {
     return ci.Char.UnicodeChar;
 }
 
+WORD OutputWriter::attributesAt(COORD c) const {
+    CHAR_INFO ci;
+    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
+        KcwDebug() << __FUNCTION__ << "error!";
+        return 0;
+    }
+    COORD bufSize;
+    memcpy(&bufSize, m_bufferSize.data(), sizeof(COORD));
+    memcpy(&ci, m_output.data() + (bufSize.X * c.X + c.Y), sizeof(CHAR_INFO));
+    ReleaseMutex(m_mutex);
+    return ci.Attributes;
+}
+
+
 
 void OutputWriter::setTitle(const std::wstring& t) {
     if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
