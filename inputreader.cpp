@@ -21,24 +21,37 @@ void InputReader::quit() {
 }
 
 void InputReader::sendText(const std::wstring& t) {
-    // cache size is 128 chars
-    int remlen = t.length();
-
-    INPUT_RECORD *ir = new INPUT_RECORD[t.length()];
-    for(int i = 0; i < t.length(); i++) {
-        ir[i].EventType = KEY_EVENT;
-        ir[i].Event.KeyEvent.bKeyDown = TRUE;
-        ir[i].Event.KeyEvent.wRepeatCount = 1;
-        ir[i].Event.KeyEvent.uChar.UnicodeChar = t[i];
+    int returnCnt = 0, pos = 0;
+    while(pos < t.length() && pos != std::wstring::npos) {
+        pos = t.find(L'\n', pos);
+        if(pos < t.length() && pos != std::wstring::npos) returnCnt++;
+        pos++;
     }
-    sendKeyboardEvents(ir, t.length());
+    const unsigned remlen = t.length() + returnCnt;
+
+    INPUT_RECORD *ir = new INPUT_RECORD[remlen];
+    for(unsigned i = 0, j = 0; i < t.length(); i++) {
+        if(t[i] == L'\n') {
+            ir[j].EventType = KEY_EVENT;
+            ir[j].Event.KeyEvent.bKeyDown = TRUE;
+            ir[j].Event.KeyEvent.wRepeatCount = 1;
+            ir[j++].Event.KeyEvent.uChar.UnicodeChar = VK_RETURN;
+        }
+        ir[j].EventType = KEY_EVENT;
+        ir[j].Event.KeyEvent.bKeyDown = TRUE;
+        ir[j].Event.KeyEvent.wRepeatCount = 1;
+        ir[j++].Event.KeyEvent.uChar.UnicodeChar = t[i];
+    }
+
+    sendKeyboardEvents(ir, remlen);
     delete[] ir;
 }
 
 void InputReader::sendCommand(const std::wstring& c) {
     // send the text and append an Enterkey
-    sendText(c);
-    // FIXME:send an enterkey here
+    std::wstring s = c;
+    if(s[c.length() - 2] != L'\n') s.append(L"\n");
+    sendText(s);
 }
 
 bool InputReader::sendKeyboardEvents(INPUT_RECORD* ir, int len) {
