@@ -25,6 +25,7 @@ class KCWSH_EXPORT InputReader : public KcwThread {
         void sendText(const std::wstring& t);
         void sendCommand(const std::wstring& c);
         bool sendKeyboardEvents(INPUT_RECORD* ir, int len);
+        void sendCtrlC();
     protected:
         KcwNotifier m_exitEventInput;
         int m_cacheSize;
@@ -34,6 +35,7 @@ class KCWSH_EXPORT InputReader : public KcwThread {
         KcwNotifier m_bytesWritten;
         KcwSharedMemory<INPUT_RECORD> m_input;
         KcwSharedMemory<int> m_inputSize;
+        KcwNotifier m_ctrlC;
 };
 };
 #endif /* inputreader */

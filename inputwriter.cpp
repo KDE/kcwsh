@@ -15,11 +15,26 @@ void InputWriter::writeData() {
     INPUT_RECORD *field = new INPUT_RECORD[len];
 
     memcpy(field, m_input.data(), len * sizeof(INPUT_RECORD));
+    for(int i = 0; i < len; i++) {
+//         KcwDebug() << __FUNCTION__
+//                    << field[i].Event.KeyEvent.bKeyDown
+//                    << field[i].Event.KeyEvent.wRepeatCount
+//                    << field[i].Event.KeyEvent.wVirtualKeyCode
+//                    << field[i].Event.KeyEvent.wVirtualScanCode
+//                    << field[i].Event.KeyEvent.uChar.UnicodeChar
+//                    << field[i].Event.KeyEvent.dwControlKeyState;
+    }
+
 
     WriteConsoleInput(m_consoleHdl, field, len, &num);
 //     KcwDebug() << "we wrote" << num << "events.";
     delete[] field;
     m_readyRead.notify();
+}
+
+void InputWriter::writeCtrlC() {
+//     KcwDebug() << "send ctrl+C";
+    GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
 }
 
 void InputWriter::init() {
@@ -36,6 +51,13 @@ void InputWriter::init() {
     wss << L"kcwsh-bytesWritten-" << dwProcessId;
     if(m_bytesWritten.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open bytesWritten notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-ctrlC-" << dwProcessId;
+    if(m_ctrlC.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open ctrlC notifier:" << wss.str();
         return;
     }
 
@@ -63,5 +85,6 @@ void InputWriter::init() {
     KcwDebug() << "adding new callback:" << m_bytesWritten.handle() << "from object:" << this;
     addCallback(m_bytesWritten, CB(InputWriter::writeData));
     addCallback(m_exitEventInput);
+    addCallback(m_ctrlC, CB(InputWriter::writeCtrlC));
     m_readyRead.notify();
 }

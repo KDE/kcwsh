@@ -72,6 +72,10 @@ bool InputReader::sendKeyboardEvents(INPUT_RECORD* ir, int len) {
     return true;
 }
 
+void InputReader::sendCtrlC() {
+    m_ctrlC.notify();
+}
+
 void InputReader::init() {
     std::wstringstream wss;
     wss << L"kcwsh-readyRead-" << m_process->pid();
@@ -84,6 +88,13 @@ void InputReader::init() {
     wss << L"kcwsh-bytesWritten-" << m_process->pid();
     if(m_bytesWritten.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to create bytesWritten notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-ctrlC-" << m_process->pid();
+    if(m_ctrlC.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to create ctrlC notifier:" << wss.str();
         return;
     }
 
