@@ -201,8 +201,9 @@ DWORD Terminal::run() {
         return -1;
     }
 
+    if(m_process.getStartupEnvironment().count(L"KCW_DEBUG") == 0)
     // we might not want to show our process ;-)
-//     m_process.setStartupAsHidden(true);
+        m_process.setStartupAsHidden(true);
 
     // 1) create a shell process in suspended mode (default)
     m_process.start();
