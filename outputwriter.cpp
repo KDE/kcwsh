@@ -37,6 +37,11 @@ void OutputWriter::cursorPositionChanged() {
     m_term->cursorPositionChanged();
 }
 
+void OutputWriter::hasScrolled() {
+//     KcwDebug() << __FUNCTION__;
+    m_term->hasScrolled();
+}
+
 COORD OutputWriter::cursorPosition() const {
     COORD ret;
     memcpy(&ret, m_cursorPosition.data(), sizeof(COORD));
@@ -101,6 +106,19 @@ WORD OutputWriter::attributesAt(COORD c) const {
     return ci.Attributes;
 }
 
+COORD OutputWriter::scrolledDistance(bool reset) const {
+    COORD c;
+    ZeroMemory(&c, sizeof(COORD));
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+    c = *m_scrolledDistance;
+    if(reset) {
+        COORD n;
+        ZeroMemory(&n, sizeof(COORD));
+        *m_scrolledDistance = n;
+    }
+    return c;
+}
 
 
 void OutputWriter::setTitle(const std::wstring& t) {
@@ -167,6 +185,13 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-scrollEvent-" << m_process->pid();
+    if(m_scrollEvent.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open scrollEvent notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-titleChangeRequested-" << m_process->pid();
     if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
@@ -216,6 +241,13 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-scrolledDistance-" << m_process->pid();
+    if(m_scrolledDistance.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open scrolledDistance shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-foregroundPid-" << m_process->pid();
     if(m_foregroundPid.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open foregroundPid shared memory:" << wss.str();
@@ -232,4 +264,5 @@ void OutputWriter::init() {
 //     addCallback(m_bufferSizeChanged, CB(sizeChanged));
     addCallback(m_bufferChanged, CB(bufferChanged));
     addCallback(m_cursorPositionChanged, CB(cursorPositionChanged));
+    addCallback(m_scrollEvent, CB(hasScrolled));
 }

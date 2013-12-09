@@ -116,6 +116,10 @@ void Terminal::titleChanged() {
 //     KcwDebug() << __FUNCTION__;
 }
 
+void Terminal::hasScrolled() {
+//     KcwDebug() << __FUNCTION__;
+}
+
 void Terminal::hasQuit() {
     Terminal::quit();
 }
@@ -185,6 +189,10 @@ int Terminal::pid() const {
 
 int Terminal::foregroundPid() const {
     return m_outputWriter->foregroundPid();
+}
+
+COORD Terminal::scrolledDistance(bool reset) const {
+    return m_outputWriter->scrolledDistance(reset);
 }
 
 void Terminal::setInitialWorkingDirectory(const std::wstring& iwd) {

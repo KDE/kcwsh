@@ -4,6 +4,7 @@
 #include <kcwautomutex.h>
 #include <windows.h>
 
+static OutputReader* or = NULL;
 struct CONSOLE_FONT
 {
     DWORD index;
@@ -186,8 +187,46 @@ void OutputReader::setTitle() {
     SetConsoleTitle(m_title.data());
 }
 
+void OutputReader::scrollHappened(int horizontal, int vertical) {
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+
+    COORD c = *m_scrolledDistance;
+    c.X += horizontal;
+    c.Y += vertical;
+    *m_scrolledDistance = c;
+//     KcwDebug() << "scrolled horizontally:" << c.X << "and vertically:" << c.Y;
+    a.unlock();
+    m_scrollEvent.notify();
+}
+
+void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
+                                        LONG idObject, LONG idChild, DWORD dwEventThread,
+                                        DWORD dwmsEventTime) {
+//     KcwDebug() << __FUNCTION__ << "test!" << event << EVENT_CONSOLE_UPDATE_SCROLL;
+    switch(event) {
+        case EVENT_CONSOLE_UPDATE_SCROLL: {
+            or->scrollHappened(idObject, idChild);
+            break;
+        }
+        default: {
+//             KcwDebug()
+            break;
+        }
+    };
+}
+
+HANDLE OutputReader::g_hook = NULL;
+
 void OutputReader::init() {
     DWORD dwProcessId = ::GetCurrentProcessId();
+    g_hook = SetWinEventHook(
+    EVENT_CONSOLE_CARET, EVENT_CONSOLE_END_APPLICATION + 1,  // Range of events (4 to 5).
+    NULL,                                                    // Handle to DLL.
+    OutputReader::HandleConsoleEvent,                        // The callback.
+    0, 0,                                                    // Process and thread IDs of interest (0 = all)
+    WINEVENT_OUTOFCONTEXT);                                  // Flags.
+    or = this;
 
     m_timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
@@ -247,6 +286,16 @@ void OutputReader::init() {
     *m_cursorPosition = getCursorPosition();
 
     wss.str(L"");
+    wss << L"kcwsh-scrolledDistance-" << dwProcessId;
+    if(m_scrolledDistance.create(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to create scrolledDistance shared memory:" << wss.str();
+        return;
+    }
+    COORD n;
+    ZeroMemory(&n, sizeof(COORD));
+    *m_scrolledDistance = n;
+
+    wss.str(L"");
     wss << L"kcwsh-bufferSizeChanged-" << dwProcessId;
     if(m_bufferSizeChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
@@ -265,6 +314,13 @@ void OutputReader::init() {
     wss << L"kcwsh-cursorPositionChanged-" << dwProcessId;
     if(m_cursorPositionChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open cursorPositionChanged notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-scrollEvent-" << dwProcessId;
+    if(m_scrollEvent.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open scrollEvent notifier:" << wss.str();
         return;
     }
 

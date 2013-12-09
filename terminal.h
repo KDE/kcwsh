@@ -39,6 +39,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         virtual KCW_CALLBACK(Terminal, sizeChanged);
         virtual KCW_CALLBACK(Terminal, bufferChanged);
         virtual KCW_CALLBACK(Terminal, cursorPositionChanged);
+        virtual KCW_CALLBACK(Terminal, hasScrolled);
 
         /**
          * this callback will be called as soon as the terminal process has finished;
@@ -59,6 +60,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         void setTerminalSize(COORD c);
         COORD terminalSize() const;
+
+        COORD scrolledDistance(bool reset = true) const;
 
         DWORD run();
 

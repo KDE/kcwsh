@@ -24,6 +24,9 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         virtual KCW_CALLBACK(OutputWriter, sizeChanged);
         virtual KCW_CALLBACK(OutputWriter, bufferChanged);
         virtual KCW_CALLBACK(OutputWriter, cursorPositionChanged);
+        virtual KCW_CALLBACK(OutputWriter, hasScrolled);
+
+        COORD scrolledDistance(bool reset = true) const;
 
         COORD bufferSize() const;
         void setBufferSize(COORD c);
@@ -33,6 +36,7 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
 
         void setTitle(const std::wstring& t);
         std::wstring title() const;
+
         WCHAR at(COORD c) const;
         WORD attributesAt(COORD c) const;
 
@@ -41,14 +45,17 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         KcwSharedMemory<CHAR_INFO> m_output;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
+        KcwSharedMemory<COORD> m_scrolledDistance;
         KcwSharedMemory<WCHAR> m_title;
         KcwSharedMemory<DWORD> m_foregroundPid;
+
         KcwNotifier m_bufferChanged;
         KcwNotifier m_bufferSizeChanged;
         KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_exitEventOutput;
         KcwNotifier m_shutdownEvent;
         KcwNotifier m_setupEvent;
+        KcwNotifier m_scrollEvent;
         KcwNotifier m_titleChangeRequested;
         KcwNotifier m_titleChanged;
 
