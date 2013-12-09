@@ -37,8 +37,6 @@ OutputReader::~OutputReader() {
 }
 
 bool OutputReader::minimizeConsoleFont() {
-    char title[MAX_PATH];
-
     // Undocumented API's
     HMODULE hmod = ::GetModuleHandleA("KERNEL32.DLL");
     if (!hmod ||
