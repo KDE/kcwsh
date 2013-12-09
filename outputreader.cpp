@@ -90,7 +90,6 @@ bool operator != (COORD a, COORD b) {
 }
 
 void OutputReader::shutdown() {
-    KcwDebug() << __FUNCTION__;
     if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
         KcwDebug() << __FUNCTION__ << "failed!";
         return;
@@ -101,7 +100,6 @@ void OutputReader::shutdown() {
 }
 
 void OutputReader::setConsoleSize() {
-    KcwDebug() << __FUNCTION__;
     if(m_output.opened()) {
         KcwDebug() << __FUNCTION__ << "failed, buffer still opened!";
         return;
@@ -112,7 +110,7 @@ void OutputReader::setConsoleSize() {
     }
 
     COORD maxSize = GetLargestConsoleWindowSize(GetStdHandle(STD_OUTPUT_HANDLE));
-    KcwDebug() << "maximumSize:" << maxSize.X << "X" << maxSize.Y;
+//     KcwDebug() << "maximumSize:" << maxSize.X << "X" << maxSize.Y;
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
@@ -172,7 +170,7 @@ void OutputReader::setConsoleSize() {
         }
     }
 
-    KcwDebug() << __FUNCTION__ << "ended!";
+//     KcwDebug() << __FUNCTION__ << "ended!";
     m_output.open(m_output.name());
     ReleaseMutex(m_mutex);
 }

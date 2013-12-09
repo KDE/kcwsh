@@ -70,13 +70,10 @@ void OutputWriter::setBufferSize(COORD c) {
         KcwDebug() << __FUNCTION__ << "error!";
         return;
     }
-    KcwDebug() << __FUNCTION__ << c.X << "X" << c.Y;
     *m_bufferSize = c;
-    KcwDebug() << "resizing output buffer:";
-    KcwDebug() << m_output.resize(c.X * c.Y);
+    m_output.resize(c.X * c.Y);
     ReleaseMutex(m_mutex);
     m_bufferSizeChanged.notify();
-    KcwDebug() << __FUNCTION__ << "finished!";
 }
 
 WCHAR OutputWriter::at(COORD c) const {
