@@ -2,10 +2,12 @@
 
 #include <kcwdebug.h>
 #include <kcwprocess.h>
+#include <kcwautomutex.h>
 
 #include "terminal.h"
 
 using namespace KcwSH;
+
 
 OutputWriter::OutputWriter(Terminal* term)
 : m_term(term)
@@ -42,12 +44,10 @@ COORD OutputWriter::cursorPosition() const {
 }
 
 void OutputWriter::setCursorPosition(COORD c) {
-    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return;
-    }
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
     *m_cursorPosition = c;
-    ReleaseMutex(m_mutex);
+    a.unlock();
     m_cursorPositionChanged.notify();
 }
 
@@ -55,6 +55,8 @@ COORD OutputWriter::bufferSize() const {
     COORD ret;
 //     KcwDebug() << "before the crash:";
 //     KcwDebug() << m_bufferSize.data()->X << "X" << m_bufferSize.data()->Y;
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
     memcpy(&ret, m_bufferSize.data(), sizeof(COORD));
     return ret;
 }
@@ -66,73 +68,63 @@ void OutputWriter::setBufferSize(COORD c) {
         return;
     }
 
-    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return;
-    }
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+
     *m_bufferSize = c;
     m_output.resize(c.X * c.Y);
-    ReleaseMutex(m_mutex);
+    a.unlock();
     m_bufferSizeChanged.notify();
 }
 
 WCHAR OutputWriter::at(COORD c) const {
     CHAR_INFO ci;
-    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return 0;
-    }
     COORD bufSize;
+
+    KcwAutoMutex a(m_mutex);
+    a.lock();
+
     memcpy(&bufSize, m_bufferSize.data(), sizeof(COORD));
     memcpy(&ci, m_output.data() + (bufSize.X * c.X + c.Y), sizeof(CHAR_INFO));
-    ReleaseMutex(m_mutex);
     return ci.Char.UnicodeChar;
 }
 
 WORD OutputWriter::attributesAt(COORD c) const {
     CHAR_INFO ci;
-    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return 0;
-    }
     COORD bufSize;
+
+    KcwAutoMutex a(m_mutex);
+    a.lock();
+
     memcpy(&bufSize, m_bufferSize.data(), sizeof(COORD));
     memcpy(&ci, m_output.data() + (bufSize.X * c.X + c.Y), sizeof(CHAR_INFO));
-    ReleaseMutex(m_mutex);
     return ci.Attributes;
 }
 
 
 
 void OutputWriter::setTitle(const std::wstring& t) {
-    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return;
-    }
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
     memcpy(m_title.data(), t.data(), t.length());
-    ReleaseMutex(m_mutex);
+    a.unlock();
     m_titleChangeRequested.notify();
 }
 
 std::wstring OutputWriter::title() const {
     std::wstring ret;
-    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return std::wstring();
-    }
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
     ret = std::wstring(m_title.data());
-    ReleaseMutex(m_mutex);
     return ret;
 }
 
 int OutputWriter::foregroundPid() const {
-    int ret;
-    if(WaitForSingleObject(m_mutex, 5000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "error!";
-        return 0;
-    }
-    ret = *m_foregroundPid.data();
-    ReleaseMutex(m_mutex);
+    int ret = 0;
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+    if(m_foregroundPid.opened())
+        ret = *m_foregroundPid.data();
     return ret;
 }
 

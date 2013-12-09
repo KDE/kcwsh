@@ -1,6 +1,7 @@
 #include "outputreader.h"
 
 #include <kcwdebug.h>
+#include <kcwautomutex.h>
 #include <windows.h>
 
 struct CONSOLE_FONT
@@ -90,12 +91,10 @@ bool operator != (COORD a, COORD b) {
 }
 
 void OutputReader::shutdown() {
-    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "failed!";
-        return;
-    }
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
     m_output.close();
-    ReleaseMutex(m_mutex);
+    a.unlock();
     m_setupEvent.notify();
 }
 
@@ -104,10 +103,9 @@ void OutputReader::setConsoleSize() {
         KcwDebug() << __FUNCTION__ << "failed, buffer still opened!";
         return;
     }
-    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "failed!";
-        return;
-    }
+
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
 
     COORD maxSize = GetLargestConsoleWindowSize(GetStdHandle(STD_OUTPUT_HANDLE));
 //     KcwDebug() << "maximumSize:" << maxSize.X << "X" << maxSize.Y;
@@ -172,7 +170,6 @@ void OutputReader::setConsoleSize() {
 
 //     KcwDebug() << __FUNCTION__ << "ended!";
     m_output.open(m_output.name());
-    ReleaseMutex(m_mutex);
 }
 
 COORD OutputReader::getCursorPosition() const {
@@ -185,12 +182,10 @@ COORD OutputReader::getCursorPosition() const {
 }
 
 void OutputReader::setTitle() {
-    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "failed!";
-        return;
-    }
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+
     SetConsoleTitle(m_title.data());
-    ReleaseMutex(m_mutex);
 }
 
 void OutputReader::init() {
@@ -340,17 +335,15 @@ void OutputReader::readData() {
         return;
     }
 
-    if(WaitForSingleObject(m_mutex, 1000) != WAIT_OBJECT_0) {
-        KcwDebug() << __FUNCTION__ << "failed!";
-        return;
-    }
-
     static WCHAR title[4096];
     static int titleLength = 0;
     WCHAR t[4096];
     ZeroMemory(t, 4096);
     DWORD l = GetConsoleTitle(t, 4096);
     if(l != titleLength || memcmp(title, t, sizeof(WCHAR) * l) != 0) {
+        KcwAutoMutex a(m_mutex);
+        a.lock(__FUNCTION__ "title changed");
+
         titleLength = l;
         memcpy(title, t, sizeof(WCHAR) * l);
         memcpy(m_title.data(), t, sizeof(WCHAR) * (l + 1));
@@ -366,11 +359,17 @@ void OutputReader::readData() {
         pids = new DWORD[pl];
         pl = GetConsoleProcessList(pids, pl);
     }
-    if(pl > 0) *m_foregroundPid = pids[pl - 1];
+    if(pl > 0 && *m_foregroundPid != pids[pl - 1]) {
+        KcwAutoMutex a(m_mutex);
+        a.lock(__FUNCTION__ "foregroundPids changed");
+        *m_foregroundPid = pids[pl - 1];
+    }
     delete[] pids;
 
     COORD cursorPos = getCursorPosition();
     if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {
+        KcwAutoMutex a(m_mutex);
+        a.lock(__FUNCTION__ "cursor changed");
         *m_cursorPosition = cursorPos;
         m_cursorPositionChanged.notify();
     }
@@ -395,9 +394,10 @@ void OutputReader::readData() {
 
     ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE), buffer, bufferSize, bufferOrigin, &sr);
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
+        KcwAutoMutex a(m_mutex);
+        a.lock(__FUNCTION__ "output changed");
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
         m_bufferChanged.notify();
     };
-    ReleaseMutex(m_mutex);
 }
 
