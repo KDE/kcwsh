@@ -130,7 +130,7 @@ void OutputReader::setConsoleSize() {
         *m_bufferSize = m_bufferSizeCache;
     }
 
-    KcwDebug() << "requested size:" << m_bufferSizeCache.X << "X" << m_bufferSizeCache.Y;
+//     KcwDebug() << "requested size:" << m_bufferSizeCache.X << "X" << m_bufferSizeCache.Y;
     if(oldSize.X < m_bufferSizeCache.X) {
         bufferSize.X = m_bufferSizeCache.X;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
@@ -203,9 +203,6 @@ void OutputReader::init() {
     long period = 100;
     li.QuadPart = period * -10000LL; // 10 milliseconds
     SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
-
-    HWND hWnd = GetConsoleWindow();
-//     ShowWindow(hWnd, SW_HIDE);
 
     std::wstringstream wss;
     wss.str(L"");
@@ -332,7 +329,8 @@ void OutputReader::init() {
     WCHAR t[4096];
     ZeroMemory(t, 4096);
     DWORD s = GetConsoleTitle(t, 4096);
-    KcwDebug() << "Title:" << std::wstring(t) << s;
+//     KcwDebug() << "Title:" << std::wstring(t) << s;
+//     setTitle(std::wstring(t));
     memcpy(m_title.data(), t, (s + 1) * sizeof(WCHAR));
     m_titleChanged.notify();
 }

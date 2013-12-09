@@ -19,18 +19,18 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD 
         }
         case DLL_PROCESS_DETACH:
         {
-            KcwDebug() << "detaching from process!" << ::GetCurrentProcessId();
+//             KcwDebug() << "detaching from process!" << ::GetCurrentProcessId();
             s_notifier.notify();
             break;
         }
         case DLL_THREAD_ATTACH:
         {
-            KcwDebug() << "attaching thread!";
+//             KcwDebug() << "attaching thread!";
             break;
         }
         case DLL_THREAD_DETACH:
         {
-            KcwDebug() << "detaching thread!";
+//             KcwDebug() << "detaching thread!";
             break;
         }
     };

@@ -83,7 +83,7 @@ void Terminal::sendCommand(const std::wstring& c) {
 void Terminal::setTitle(const std::wstring& t) {
     // FIXME: make sure that the title is less then 4096 chars long
     // this is the maximum title length
-    KcwDebug() << __FUNCTION__ << t;
+//     KcwDebug() << __FUNCTION__ << t;
     m_outputWriter->setTitle(t);
 }
 
@@ -101,19 +101,19 @@ COORD Terminal::terminalSize() const {
 }
 
 void Terminal::sizeChanged() {
-    KcwDebug() << "bufferSize has changed";
+//     KcwDebug() << __FUNCTION__;
 }
 
 void Terminal::bufferChanged() {
-    KcwDebug() << "buffer has changed";
+//     KcwDebug() << __FUNCTION__;
 }
 
 void Terminal::cursorPositionChanged() {
-    KcwDebug() << __FUNCTION__;
+//     KcwDebug() << __FUNCTION__;
 }
 
 void Terminal::titleChanged() {
-    KcwDebug() << __FUNCTION__;
+//     KcwDebug() << __FUNCTION__;
 }
 
 void Terminal::hasQuit() {
@@ -121,11 +121,11 @@ void Terminal::hasQuit() {
 }
 
 void Terminal::aboutToQuit() {
-    KcwDebug() << "aboutToQuit!";
+//     KcwDebug() << __FUNCTION__;
 }
 
 void Terminal::quit() {
-    KcwDebug() << "Terminal::quit";
+//     KcwDebug() << __FUNCTION__;
     removeCallback(m_process.process(), CB(hasQuit));
     if(m_inputReader != NULL && m_outputWriter != NULL) {
         m_inputReader->quit();
@@ -140,11 +140,11 @@ bool Terminal::isSetup() const {
 }
 
 void Terminal::inputThreadDetached() {
-    KcwDebug() << "inputThreadDetached!";
+//     KcwDebug() << "inputThreadDetached!";
 }
 
 void Terminal::outputThreadDetached() {
-    KcwDebug() << "outputThreadDetached!";
+//     KcwDebug() << "outputThreadDetached!";
 }
 void Terminal::activate() {
     setActive(true);
