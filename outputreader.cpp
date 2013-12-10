@@ -4,7 +4,7 @@
 #include <kcwautomutex.h>
 #include <windows.h>
 
-static OutputReader* or = NULL;
+static OutputReader* out_reader = NULL;
 struct CONSOLE_FONT
 {
     DWORD index;
@@ -206,7 +206,7 @@ void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd
 //     KcwDebug() << __FUNCTION__ << "test!" << event << EVENT_CONSOLE_UPDATE_SCROLL;
     switch(event) {
         case EVENT_CONSOLE_UPDATE_SCROLL: {
-            or->scrollHappened(idObject, idChild);
+            out_reader->scrollHappened(idObject, idChild);
             break;
         }
         default: {
@@ -226,7 +226,7 @@ void OutputReader::init() {
     OutputReader::HandleConsoleEvent,                        // The callback.
     0, 0,                                                    // Process and thread IDs of interest (0 = all)
     WINEVENT_OUTOFCONTEXT);                                  // Flags.
-    or = this;
+    out_reader = this;
 
     m_timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
