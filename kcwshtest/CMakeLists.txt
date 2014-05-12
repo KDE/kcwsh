@@ -4,19 +4,21 @@ cmake_minimum_required(VERSION 2.8)
 
 option(GUIAPP "produce a gui app" ON)
 
-find_package(Qt4 REQUIRED)
+set(CMAKE_AUTOMOC ON)
 
-include_directories(${QT_INCLUDES})
+find_package(Qt5 CONFIG Core Widgets)
+if(NOT Qt5_FOUND)
+	find_package(Qt4 REQUIRED)
 
-add_definitions(${QT_DEFINITIONS})
+	include_directories(${QT_INCLUDES})
+
+	add_definitions(${QT_DEFINITIONS})
+endif()
 
 set(kcwshtest_SRCS
     main.cpp
     mywidget.cpp
 )
-
-
-qt4_wrap_cpp(kcwshtest_SRCS mywidget.h)
 
 if(GUIAPP)
     set(_GUI WIN32)
@@ -25,11 +27,14 @@ else(GUIAPP)
 endif(GUIAPP)
 
 add_executable(kcwshtest ${_GUI} ${kcwshtest_SRCS})
-
-target_link_libraries(kcwshtest ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
-if(GUIAPP)
-    target_link_libraries(kcwshtest ${QT_QTMAIN_LIBRARY})
-endif(GUIAPP)
+if(Qt5_FOUND)
+    target_link_libraries(kcwshtest Qt5::Core Qt5::Widgets)
+else()
+    target_link_libraries(kcwshtest ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+    if(GUIAPP)
+        target_link_libraries(kcwshtest ${QT_QTMAIN_LIBRARY})
+    endif()
+endif()
 
 install(TARGETS kcwshtest RUNTIME DESTINATION bin
                           LIBRARY DESTINATION lib

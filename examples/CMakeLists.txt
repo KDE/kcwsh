@@ -1,5 +1,5 @@
 add_subdirectory(cmd)
 
-if(QT4_FOUND)
+if(Qt5_FOUND OR QT4_FOUND)
     add_subdirectory(qt)
 endif()

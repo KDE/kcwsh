@@ -1,9 +1,11 @@
 project(kcwsh)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 option(BUILD_GUI_TEST "build a gui app for testing purposes" ON)
 option(BUILD_TESTS "build unittests" ON)
+
+set(CMAKE_AUTOMOC ON)
 
 if(BUILD_TESTS)
     enable_testing()
@@ -30,7 +32,10 @@ install(FILES
 
 
 # required to check whether to build the kcwshtest
+find_package(Qt5 COMPONENTS Core Widgets CONFIG)
+if(NOT Qt5_FOUND)
 find_package(Qt4)
+endif()
 
 # this is my package I am allowed to do what I want!
 add_definitions(-D_CRT_SECURE_NO_WARNINGS /DUNICODE)
@@ -66,7 +71,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # kcwsh library always needs to be shared
 add_library(kcwsh SHARED ${kcwsh_SRCS})
 target_link_libraries(kcwsh ${KCW_LIBRARIES})
-set_target_properties(kcwsh PROPERTIES PREFIX "")
+set_target_properties(kcwsh PROPERTIES PREFIX "" AUTOMOC OFF)
 
 install(TARGETS kcwsh EXPORT KcwSHTargets
                       RUNTIME DESTINATION bin
