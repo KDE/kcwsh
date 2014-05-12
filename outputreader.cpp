@@ -419,7 +419,7 @@ void OutputReader::readData() {
     DWORD l = GetConsoleTitle(t, 4096);
     if(l != titleLength || memcmp(title, t, sizeof(WCHAR) * l) != 0) {
         KcwAutoMutex a(m_mutex);
-        a.lock(__FUNCTION__ "title changed");
+        a.lock(__FUNCTION__);
 
         titleLength = l;
         memcpy(title, t, sizeof(WCHAR) * l);
@@ -438,7 +438,7 @@ void OutputReader::readData() {
     }
     if(pl > 0 && *m_foregroundPid != pids[pl - 1]) {
         KcwAutoMutex a(m_mutex);
-        a.lock(__FUNCTION__ "foregroundPids changed");
+        a.lock(__FUNCTION__);
         *m_foregroundPid = pids[pl - 1];
     }
     delete[] pids;
@@ -446,7 +446,7 @@ void OutputReader::readData() {
     COORD cursorPos = getCursorPosition();
     if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {
         KcwAutoMutex a(m_mutex);
-        a.lock(__FUNCTION__ "cursor changed");
+        a.lock(__FUNCTION__);
         *m_cursorPosition = cursorPos;
         m_cursorPositionChanged.notify();
     }
@@ -472,7 +472,7 @@ void OutputReader::readData() {
     ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE), buffer, bufferSize, bufferOrigin, &sr);
     if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
         KcwAutoMutex a(m_mutex);
-        a.lock(__FUNCTION__ "output changed");
+        a.lock(__FUNCTION__);
         memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
         m_bufferChanged.notify();
     };
