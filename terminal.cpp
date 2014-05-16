@@ -111,7 +111,11 @@ void Terminal::setTitle(const std::wstring& t) {
 }
 
 std::wstring Terminal::title() const {
-    return m_outputWriter->title();
+    if(isSetup()) {
+        return m_outputWriter->title();
+    } else {
+        return std::wstring();
+    }
 }
 
 COORD Terminal::terminalSize() const {
