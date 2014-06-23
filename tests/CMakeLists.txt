@@ -1,11 +1,8 @@
 include_directories(${CMAKE_SOURCE_DIR})
 
-add_library(testinjector MODULE testinjectiondll.cpp)
-target_link_libraries(testinjector kcw)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_executable(readoutputbuffertest readoutputbuffertest.cpp)
-target_link_libraries(readoutputbuffertest kcw)
-#add_test(readoutputbuffertest readoutputbuffertest)
+add_executable(terminaltest terminaltest.cpp)
+target_link_libraries(terminaltest kcwsh)
+add_test(NAME simpletest COMMAND terminaltest echo)
 
-add_executable(threadtest threadtest.cpp)
-target_link_libraries(threadtest kcw)

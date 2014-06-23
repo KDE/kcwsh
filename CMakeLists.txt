@@ -88,7 +88,7 @@ add_subdirectory(frontends)
 add_subdirectory(examples)
 
 if(BUILD_TESTS)
-#    add_subdirectory(tests)
+   add_subdirectory(tests)
 endif()
 
 if(BUILD_GUI_TEST AND QT4_FOUND)
