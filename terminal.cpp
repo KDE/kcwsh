@@ -44,6 +44,8 @@ Terminal::Terminal()
 , m_setup(false)
 , m_active(false)
 , m_termSize(termDefaultSize)
+, m_inputReader(NULL)
+, m_outputWriter(NULL)
 , KcwThread() {
 }
 
@@ -233,7 +235,8 @@ void Terminal::setEnvironment(KcwProcess::KcwProcessEnvironment env) {
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
         KcwDebug() << "no inputreader or outputwriter set!";
-        return -1;
+        m_inputReader = new InputReader();
+        m_outputWriter = new OutputWriter(this);
     }
 
     if(m_process.getStartupEnvironment().count(L"KCW_DEBUG") == 0)
@@ -312,6 +315,7 @@ DWORD Terminal::run() {
     m_outputWriter->start();
 
     m_outputWriter->setBufferSize(m_termSize);
+    sizeChanged();
 
     m_process.resume();
     return KcwEventLoop::exec();

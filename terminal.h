@@ -57,7 +57,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         /**
          * this function closes down the complete terminal and shuts down the terminal thread
          */
-        void quit();
+        virtual KCW_CALLBACK(Terminal, quit);
 
         virtual KCW_CALLBACK(Terminal, sizeChanged);
         virtual KCW_CALLBACK(Terminal, bufferChanged);
