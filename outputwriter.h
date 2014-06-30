@@ -63,9 +63,13 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         WCHAR at(COORD c) const;
         WORD attributesAt(COORD c) const;
 
+        WCHAR historyAt(COORD c) const;
+        WORD historyAttributesAt(COORD c) const;
+
         int foregroundPid() const;
     protected:
         KcwSharedMemory<CHAR_INFO> m_output;
+        KcwSharedMemory<CHAR_INFO> m_outputHistory;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
         KcwSharedMemory<COORD> m_scrolledDistance;
@@ -82,6 +86,7 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         KcwNotifier m_titleChangeRequested;
         KcwNotifier m_titleChanged;
 
+        CHAR_INFO *m_historyBuffer;
         HANDLE m_mutex;
 
         KcwProcess* m_process;

@@ -54,6 +54,7 @@ class OutputReader : public KcwEventLoop {
                                         DWORD dwmsEventTime);
         bool minimizeConsoleFont();
         KcwSharedMemory<CHAR_INFO> m_output;
+        KcwSharedMemory<CHAR_INFO> m_outputHistory;
         KcwSharedMemory<COORD> m_bufferSize;
         KcwSharedMemory<COORD> m_cursorPosition;
         KcwSharedMemory<WCHAR> m_title;

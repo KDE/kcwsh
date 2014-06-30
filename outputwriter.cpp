@@ -129,6 +129,30 @@ WORD OutputWriter::attributesAt(COORD c) const {
     return ci.Attributes;
 }
 
+WCHAR OutputWriter::historyAt(COORD c) const {
+    CHAR_INFO ci;
+    COORD bufSize;
+
+    KcwAutoMutex a(m_mutex);
+    a.lock();
+
+    memcpy(&bufSize, m_bufferSize.data(), sizeof(COORD));
+    memcpy(&ci, m_outputHistory.data() + (bufSize.X * c.X + c.Y), sizeof(CHAR_INFO));
+    return ci.Char.UnicodeChar;
+}
+
+WORD OutputWriter::historyAttributesAt(COORD c) const {
+    CHAR_INFO ci;
+    COORD bufSize;
+
+    KcwAutoMutex a(m_mutex);
+    a.lock();
+
+    memcpy(&bufSize, m_bufferSize.data(), sizeof(COORD));
+    memcpy(&ci, m_outputHistory.data() + (bufSize.X * c.X + c.Y), sizeof(CHAR_INFO));
+    return ci.Attributes;
+}
+
 COORD OutputWriter::scrolledDistance(bool reset) const {
     COORD c;
     ZeroMemory(&c, sizeof(COORD));
@@ -253,6 +277,13 @@ void OutputWriter::init() {
     wss << L"kcwsh-output-" << m_process->pid();
     if(m_output.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open output shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-outputHistory-" << m_process->pid();
+    if(m_outputHistory.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open outputHistory shared memory:" << wss.str();
         return;
     }
 

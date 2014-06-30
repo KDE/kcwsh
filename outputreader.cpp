@@ -355,6 +355,13 @@ void OutputReader::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-outputHistory-" << dwProcessId;
+    if(m_outputHistory.create(wss.str().c_str(), m_bufferSize.data()->X * m_bufferSize.data()->Y) != 0) {
+        KcwDebug() << "failed to create outputHistory shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-title-" << dwProcessId;
     // this is the maximum size (64KB)
     if(m_title.create(wss.str().c_str(), 4096) != 0) {
