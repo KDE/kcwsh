@@ -145,6 +145,10 @@ void Terminal::titleChanged() {
 //     KcwDebug() << __FUNCTION__;
 }
 
+void Terminal::activityChanged() {
+//     KcwDebug() << __FUNCTION__;
+}
+
 void Terminal::hasScrolled() {
 //     KcwDebug() << __FUNCTION__;
 }
@@ -206,6 +210,7 @@ void Terminal::setActive(bool t) {
         SuspendThread(m_inputWriter);
         SuspendThread(m_outputReader);
     }
+    m_activityChanged.notify();
 }
 
 bool Terminal::active() const {
@@ -232,6 +237,10 @@ void Terminal::setEnvironment(KcwProcess::KcwProcessEnvironment env) {
     m_process.setStartupEnvironment(env);
 }
 
+HANDLE Terminal::activityHandle() {
+    return m_activityChanged;
+}
+
 DWORD Terminal::run() {
     if(m_inputReader == NULL || m_outputWriter == NULL) {
         KcwDebug() << "no inputreader or outputwriter set!";
@@ -246,8 +255,6 @@ DWORD Terminal::run() {
     // 1) create a shell process in suspended mode (default)
     m_process.start();
     addCallback(m_process.process(), CB(hasQuit));
-
-    m_active = true;
 
     m_inputReader->setProcess(&m_process);
     m_inputReader->init();
@@ -267,6 +274,14 @@ DWORD Terminal::run() {
         KcwDebug() << "could not create setupEvent!";
         return -1;
     };
+
+    wss.str(L"");
+    wss << "kcwsh-activity-" << m_process.pid();
+    if(m_activityChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "could not create activityEvent!";
+        return -1;
+    };
+    addCallback(m_activityChanged, CB(activityChanged));
 
     wss.str(L"");
     wss << "kcwsh-titleChanged-" << m_process.pid();
@@ -318,5 +333,10 @@ DWORD Terminal::run() {
     sizeChanged();
 
     m_process.resume();
+
+    m_active = true;
+
+    m_activityChanged.notify();
+
     return KcwEventLoop::exec();
 }

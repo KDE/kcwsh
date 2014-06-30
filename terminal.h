@@ -78,6 +78,8 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         virtual KCW_CALLBACK(Terminal, titleChanged);
 
+        virtual KCW_CALLBACK(Terminal, activityChanged);
+
         void setActive(bool t);
         bool active() const;
 
@@ -101,6 +103,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
 
         void setEnvironment(KcwProcess::KcwProcessEnvironment env);
 
+        HANDLE activityHandle();
     protected:
         Terminal(InputReader* ir, OutputWriter* ow);
 
@@ -122,6 +125,7 @@ class KCWSH_EXPORT Terminal : public KcwThread {
         KcwNotifier m_exitEvent;
         KcwNotifier m_setupEvent;
         KcwNotifier m_titleChanged;
+        KcwNotifier m_activityChanged;
 };
 };
 #endif /* kcwsh_terminal */
