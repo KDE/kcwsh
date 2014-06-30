@@ -1,0 +1,5 @@
+/** @mainpage kcwsh
+kcwsh is a library which provides you with an interface to MS Windows console applications.
+It wraps the console window and gives you control over all of the console windows properties
+so you can reimplement your own GUI interface.
+*/

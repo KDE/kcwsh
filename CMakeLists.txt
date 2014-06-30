@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 option(BUILD_GUI_TEST "build a gui app for testing purposes" ON)
 option(BUILD_TESTS "build unittests" ON)
+option(BUILD_DOCS "build documentation" ON)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -86,6 +87,20 @@ install(EXPORT KcwSHTargets DESTINATION lib/cmake/kcwsh COMPONENT devel)
 
 add_subdirectory(frontends)
 add_subdirectory(examples)
+
+if(BUILD_DOCS)
+    # add a target to generate API documentation with Doxygen
+    find_package(Doxygen)
+    if(DOXYGEN_FOUND)
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+        add_custom_target(doc ALL
+            ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM
+        )
+    endif()
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html DESTINATION doc/kcwsh COMPONENT doc)
+endif()
 
 if(BUILD_TESTS)
    add_subdirectory(tests)
