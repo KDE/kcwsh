@@ -30,8 +30,6 @@
 
 #include <windows.h>
 
-namespace KcwSH {
-
 class InputWriter : public KcwEventLoop {
     public:
         InputWriter();
@@ -47,6 +45,5 @@ class InputWriter : public KcwEventLoop {
         KcwNotifier m_ctrlC;
         KcwSharedMemory<INPUT_RECORD> m_input;
         KcwSharedMemory<int> m_inputSize;
-};
 };
 #endif /* inputwriter */

@@ -26,8 +26,6 @@
 
 #include <kcwdebug.h>
 
-using namespace KcwSH;
-
 InputWriter::InputWriter()
 : m_consoleHdl(GetStdHandle(STD_INPUT_HANDLE))
 , KcwEventLoop() {

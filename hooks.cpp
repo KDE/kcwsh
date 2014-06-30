@@ -29,8 +29,6 @@
 #include "inputwriter.h"
 #include "outputreader.h"
 
-using namespace KcwSH;
-
 DWORD kcwshInputHook(void *val) {
 //     KcwDebug() << "kcwshInputHook was called!";
     InputWriter writer;
