@@ -232,6 +232,21 @@ void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd
             out_reader->scrollHappened(idObject, idChild);
             break;
         }
+        case EVENT_CONSOLE_CARET: {
+            if(idObject == CONSOLE_CARET_VISIBLE) {
+                COORD pos;
+                memcpy(&pos, &idChild, sizeof(COORD));
+//                 KcwDebug() << "cursor moved to " << pos.X << ", " << pos.Y;
+                KcwAutoMutex a(out_reader->m_mutex);
+                a.lock(__FUNCTION__);
+                *out_reader->m_cursorPosition = pos;
+                a.unlock();
+                out_reader->m_cursorPositionChanged.notify();
+            } else {
+                KcwDebug() << "selections are currently not understood!";
+            }
+            break;
+        }
         default: {
 //             KcwDebug()
             break;
@@ -449,14 +464,6 @@ void OutputReader::readData() {
         *m_foregroundPid = pids[pl - 1];
     }
     delete[] pids;
-
-    COORD cursorPos = getCursorPosition();
-    if(memcmp(&cursorPos, m_cursorPosition.data(), sizeof(COORD)) != 0) {
-        KcwAutoMutex a(m_mutex);
-        a.lock(__FUNCTION__);
-        *m_cursorPosition = cursorPos;
-        m_cursorPositionChanged.notify();
-    }
 
     COORD size = *m_bufferSize;
     COORD bufferOrigin; 
