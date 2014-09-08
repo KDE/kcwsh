@@ -33,7 +33,9 @@ using namespace KcwSH;
 using namespace std;
 
 
-int wmain(int argc, wchar_t** argv) {
+int main() {
+    int argc;
+    wchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     vector<wstring> args;
     for(int i = 0; i < argc; i++) args.push_back(wstring(argv[i]));
 
