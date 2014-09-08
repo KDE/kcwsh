@@ -98,8 +98,8 @@ if(BUILD_DOCS)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen" VERBATIM
         )
+        install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html DESTINATION doc/kcwsh COMPONENT doc)
     endif()
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html DESTINATION doc/kcwsh COMPONENT doc)
 endif()
 
 if(BUILD_TESTS)
