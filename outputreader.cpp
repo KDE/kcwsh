@@ -519,14 +519,14 @@ void OutputReader::readData() {
     COORD size = *m_bufferSize;
     COORD bufferOrigin; 
     bufferOrigin.X = 0; bufferOrigin.Y = 0;
-    COORD bufferSize = getConsoleSize();
+    COORD windowSize = getConsoleSize();
 
-    static COORD oldSize = bufferSize;
-    static CHAR_INFO *buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
-    if(bufferSize != oldSize) {
+    static COORD oldSize = windowSize;
+    static CHAR_INFO *buffer = new CHAR_INFO[windowSize.X * windowSize.Y];
+    if(windowSize != oldSize) {
         delete[] buffer;
-        buffer = new CHAR_INFO[bufferSize.X * bufferSize.Y];
-        oldSize = bufferSize;
+        buffer = new CHAR_INFO[windowSize.X * windowSize.Y];
+        oldSize = windowSize;
     }
     SMALL_RECT sr;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -534,11 +534,11 @@ void OutputReader::readData() {
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     sr = csbi.srWindow;
 
-    ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE), buffer, bufferSize, bufferOrigin, &sr);
-    if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y) != 0) {
+    ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE), buffer, windowSize, bufferOrigin, &sr);
+    if(memcmp(buffer, m_output.data(), sizeof(CHAR_INFO) * windowSize.X * windowSize.Y) != 0) {
         KcwAutoMutex a(m_mutex);
         a.lock(__FUNCTION__);
-        memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * bufferSize.X * bufferSize.Y);
+        memcpy(m_output.data(), buffer, sizeof(CHAR_INFO) * windowSize.X * windowSize.Y);
         m_bufferChanged.notify();
     };
 }
