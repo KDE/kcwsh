@@ -325,7 +325,6 @@ void OutputReader::init() {
     LARGE_INTEGER li;
     long period = 100;
     li.QuadPart = period * -10000LL; // 10 milliseconds
-    SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
 
     // register notifiers and shared memory
     std::wstringstream wss;
@@ -464,12 +463,14 @@ void OutputReader::init() {
     addCallback(m_exitEventOutput);
     ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
 
-    addCallback(m_timer, CB(readData));
     if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
         m_bufferSizeCache = *m_bufferSize;
 //        m_bufferSizeChanged.notify();
     }
 
+    // everything is set up, start the timer for readData
+    SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
+    addCallback(m_timer, CB(readData));
 //     KcwDebug() << "notifying setupEvent";
     m_setupEvent.notify();
 
