@@ -460,6 +460,9 @@ void OutputReader::init() {
         return;
     }
 
+    // simply zero out the title
+    ZeroMemory(m_title.data(), 4096);
+
     addCallback(m_exitEventOutput);
     ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
 
@@ -474,14 +477,6 @@ void OutputReader::init() {
 //     KcwDebug() << "notifying setupEvent";
     m_setupEvent.notify();
 
-    ZeroMemory(m_title.data(), 4096);
-    WCHAR t[4096];
-    ZeroMemory(t, 4096);
-    DWORD s = GetConsoleTitle(t, 4096);
-//     KcwDebug() << "Title:" << std::wstring(t) << s;
-//     setTitle(std::wstring(t));
-    memcpy(m_title.data(), t, (s + 1) * sizeof(WCHAR));
-    m_titleChanged.notify();
 }
 
 void OutputReader::readData() {
