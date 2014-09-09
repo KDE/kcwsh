@@ -95,6 +95,9 @@ bool OutputReader::minimizeConsoleFont() {
     return false;
 }
 
+/**
+ * returns the size of the console view window
+ */
 COORD OutputReader::getConsoleSize() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -114,6 +117,9 @@ bool operator != (COORD a, COORD b) {
     return a.X != b.X || a.Y != b.Y;
 }
 
+/**
+ * callback to cleanup this thread.
+ */
 void OutputReader::shutdown() {
     KcwAutoMutex a(m_mutex);
     a.lock(__FUNCTION__);
@@ -122,6 +128,9 @@ void OutputReader::shutdown() {
     m_setupEvent.notify();
 }
 
+/**
+ * sets the size of view & buffer to the size currently contained in m_bufferSize
+ */
 void OutputReader::setConsoleSize() {
     // first, check if the buffer is still opened, as we can't resize an open buffer
     if(m_output.opened()) {
@@ -215,6 +224,9 @@ void OutputReader::setConsoleSize() {
     m_output.open(m_output.name());
 }
 
+/**
+ * returns the current position of the cursor in the view window.
+ */
 COORD OutputReader::getCursorPosition() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -224,6 +236,9 @@ COORD OutputReader::getCursorPosition() const {
     return ret;
 }
 
+/**
+ * sets the console title currently contained in m_title
+ */
 void OutputReader::setTitle() {
     KcwAutoMutex a(m_mutex);
     a.lock(__FUNCTION__);
@@ -231,6 +246,10 @@ void OutputReader::setTitle() {
     SetConsoleTitle(m_title.data());
 }
 
+/**
+ * function which is supposed to handle scrollevents. This function needs to be really fast
+ * TODO
+ */
 void OutputReader::scrollHappened(int horizontal, int vertical) {
     KcwAutoMutex a(m_mutex);
     a.lock(__FUNCTION__);
@@ -244,6 +263,10 @@ void OutputReader::scrollHappened(int horizontal, int vertical) {
     m_scrollEvent.notify();
 }
 
+/**
+ * static Windows event callback for console accessibility events
+ * This currently handles scroll and cursor position changes.
+ */
 void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
                                         LONG idObject, LONG idChild, DWORD dwEventThread,
                                         DWORD dwmsEventTime) {
@@ -275,8 +298,15 @@ void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd
     };
 }
 
+/**
+ * contains the handle for the windows event callback
+ * TODO: this is probably not needed at all
+ */
 HANDLE OutputReader::g_hook = NULL;
 
+/**
+ * sets up shared memory and notifiers, registers a recurring timer for calling OutputReader::readData
+ */
 void OutputReader::init() {
     DWORD dwProcessId = ::GetCurrentProcessId();
     g_hook = SetWinEventHook(
@@ -285,14 +315,19 @@ void OutputReader::init() {
     OutputReader::HandleConsoleEvent,                        // The callback.
     0, 0,                                                    // Process and thread IDs of interest (0 = all)
     WINEVENT_OUTOFCONTEXT);                                  // Flags.
+
+    // we only ever allow one instance of the OutputReader to make it easier to access it from the windows handler
+    // in case we would allow several instances, we probably need to cleanup wenn the reader is dismantled (TODO)
     out_reader = this;
 
+    // create the recurring timer which is started later in this function
     m_timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
     long period = 100;
     li.QuadPart = period * -10000LL; // 10 milliseconds
     SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
 
+    // register notifiers and shared memory
     std::wstringstream wss;
     wss.str(L"");
     wss << L"kcwsh-setup-" << dwProcessId;
@@ -455,6 +490,7 @@ void OutputReader::readData() {
         return;
     }
 
+    // read the title here, it seems there is no notification when the title changes.
     static WCHAR title[4096];
     static int titleLength = 0;
     WCHAR t[4096];
