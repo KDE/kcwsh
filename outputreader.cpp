@@ -219,7 +219,6 @@ void OutputReader::setConsoleSize() {
         }
     }
 
-//     KcwDebug() << __FUNCTION__ << "ended!";
     // finally reopen the output
     m_output.open(m_output.name());
 }
@@ -270,7 +269,6 @@ void OutputReader::scrollHappened(int horizontal, int vertical) {
 void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
                                         LONG idObject, LONG idChild, DWORD dwEventThread,
                                         DWORD dwmsEventTime) {
-//     KcwDebug() << __FUNCTION__ << "test!" << event << EVENT_CONSOLE_UPDATE_SCROLL;
     switch(event) {
         case EVENT_CONSOLE_UPDATE_SCROLL: {
             out_reader->scrollHappened(idObject, idChild);
