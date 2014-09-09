@@ -99,6 +99,8 @@ COORD OutputReader::getConsoleSize() const {
     COORD ret;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    // the console size is only the window size, the rest is needed for
+    // the generation of the history.
     ret.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     ret.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
     return ret;
@@ -121,21 +123,28 @@ void OutputReader::shutdown() {
 }
 
 void OutputReader::setConsoleSize() {
+    // first, check if the buffer is still opened, as we can't resize an open buffer
     if(m_output.opened()) {
         KcwDebug() << __FUNCTION__ << "failed, buffer still opened!";
         return;
     }
 
+    // the lock has to be this early, so that the resolutions etc. are still valid when we change them
     KcwAutoMutex a(m_mutex);
     a.lock(__FUNCTION__);
 
+    // each console has a maximum size in lines/columns, which is calculated using
+    // the current screen size and the size of the of the fonts so that the
+    // console cannot be bigger than the current screen - that's why we have OutputReader::minimizeConsoleFont
     COORD maxSize = GetLargestConsoleWindowSize(GetStdHandle(STD_OUTPUT_HANDLE));
 //     KcwDebug() << "maximumSize:" << maxSize.X << "X" << maxSize.Y;
-    SMALL_RECT sr;
+
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    sr = csbi.srWindow;
 
+    // sr contains the four coordinates of the console view window (in lines & columns),
+    // bufferSize contains the overall size of the buffer
+    SMALL_RECT sr = csbi.srWindow;
     COORD bufferSize = csbi.dwSize;
     COORD oldSize = bufferSize;
     m_bufferSizeCache = *m_bufferSize;
@@ -148,7 +157,15 @@ void OutputReader::setConsoleSize() {
         *m_bufferSize = m_bufferSizeCache;
     }
 
-//     KcwDebug() << "requested size:" << m_bufferSizeCache.X << "X" << m_bufferSizeCache.Y;
+    // Resizing a console window actually consists of two steps: adjusting the size of the buffer,
+    // and adjusting the size of the window. Of course, the window (actually a view on the buffer)
+    // can't be bigger than the buffer itself, so in case we want to increase the view size, we need to
+    // increase the size of the buffer first. If we want to decrease the size of the view, we need to
+    // first decrease the size of the view, and then decrease the size of the buffer too.
+
+
+    // increasing the view requires a buffer increase first
+    // X is the width (number of columns)
     if(oldSize.X < m_bufferSizeCache.X) {
         bufferSize.X = m_bufferSizeCache.X;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
@@ -156,6 +173,7 @@ void OutputReader::setConsoleSize() {
             KcwDebug() << "failed to increase screen buffer width to" << bufferSize.X << "Error:" << dw;
         }
     }
+    // Y is the height (number of lines)
     if(oldSize.Y < m_bufferSizeCache.Y) {
         bufferSize.Y = m_bufferSizeCache.Y;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
@@ -164,6 +182,7 @@ void OutputReader::setConsoleSize() {
         }
     }
 
+    // now change the size of the view
     sr.Bottom = sr.Top + m_bufferSizeCache.Y - 1;
     if(!SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &sr)) {
         DWORD dw = GetLastError();
@@ -175,6 +194,7 @@ void OutputReader::setConsoleSize() {
         KcwDebug() << "failed to set console width!" << dw;
     }
 
+    // in the end, change the buffer size, if it gets decreased
     if(oldSize.X > m_bufferSizeCache.X) {
         bufferSize.X = m_bufferSizeCache.X;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
@@ -191,6 +211,7 @@ void OutputReader::setConsoleSize() {
     }
 
 //     KcwDebug() << __FUNCTION__ << "ended!";
+    // finally reopen the output
     m_output.open(m_output.name());
 }
 
