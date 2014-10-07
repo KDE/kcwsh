@@ -23,15 +23,39 @@
  */
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <vector>
+#include <iterator>
 
 #include <kcwprocess.h>
+#include <kcwdebug.h>
 
 #include "terminal.h"
+#include "inputreader.h"
 
 using namespace KcwSH;
 using namespace std;
 
+class TestTerminal : public Terminal {
+    public:
+        KCW_CALLBACK(TestTerminal, activityChanged);
+        vector<wstring> m_cmd;
+};
+
+void TestTerminal::activityChanged() {
+    // set size to the same size
+    COORD c;
+    c.X = 80; c.Y = 25;
+    setTerminalSize(c);
+
+    // send concatenated commandline as command
+    wostringstream imploded;
+    copy(m_cmd.begin() + 1, m_cmd.end(),
+           ostream_iterator<wstring, wchar_t>(imploded, L" "));
+    sendCommand(imploded.str());
+
+    Sleep(1000);
+}
 
 int main() {
     int argc;
@@ -60,23 +84,26 @@ int main() {
     }
 
     /*************************************************************************/
-    Terminal t;
+    TestTerminal t;
     if(!shell.empty()) {
         t.setCmd(shell);
     }
+//     t.setOutputWriter(new TestOutputWriter(&t));
+    t.setInputReader(new InputReader);
 
     KcwProcess::KcwProcessEnvironment env = KcwProcess::KcwProcessEnvironment::getCurrentEnvironment();
     env[L"KCW_DEBUG"] = L"1";
 
     t.setEnvironment(env);
+    t.m_cmd = args;
 
     HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
     li.QuadPart = -20 * 1000000LL; // 2 seconds
 
-    SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE);
     t.addCallback(timer, CB(Terminal::quit), &t);
 
+    SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE);
     result = t.run();
     if(result != 0) wcout << L"failed to run Terminal" << endl;
 
