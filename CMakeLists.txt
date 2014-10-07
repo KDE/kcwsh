@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 option(BUILD_GUI_TEST "build a gui app for testing purposes" ON)
 option(BUILD_TESTS "build unittests" ON)
-option(BUILD_DOCS "build documentation" ON)
+option(BUILD_DOCS "build documentation" OFF)
 
 set(CMAKE_AUTOMOC ON)
 
