@@ -37,12 +37,16 @@ class InputWriter : public KcwEventLoop {
         void init();
         KCW_CALLBACK(InputWriter, writeData);
         KCW_CALLBACK(InputWriter, writeCtrlC);
+        KCW_CALLBACK(InputWriter, setTitle);
     private:
         HANDLE m_consoleHdl;
+        HANDLE m_mutex;
         KcwNotifier m_bytesWritten;
         KcwNotifier m_readyRead;
         KcwNotifier m_exitEventInput;
         KcwNotifier m_ctrlC;
+        KcwNotifier m_titleChangeRequested;
+        KcwSharedMemory<WCHAR> m_title;
         KcwSharedMemory<INPUT_RECORD> m_input;
         KcwSharedMemory<int> m_inputSize;
 };

@@ -23,6 +23,7 @@
  */
 #include "inputreader.h"
 
+#include <kcwautomutex.h>
 #include <kcwdebug.h>
 #include <kcwprocess.h>
 
@@ -99,6 +100,14 @@ void InputReader::sendCtrlC() {
     m_ctrlC.notify();
 }
 
+void InputReader::setTitle(const std::wstring& t) {
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+    memcpy(m_title.data(), t.data(), t.length());
+    a.unlock();
+    m_titleChangeRequested.notify();
+}
+
 void InputReader::init() {
     std::wstringstream wss;
     wss << L"kcwsh-readyRead-" << m_process->pid();
@@ -139,6 +148,21 @@ void InputReader::init() {
     wss << L"kcwsh-inputSize-" << m_process->pid();
     if(m_inputSize.create(wss.str().c_str(), 1) != 0) {
         KcwDebug() << "failed to create inputSize shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-title-" << m_process->pid();
+    // this is the maximum size (64KB)
+    if(m_title.create(wss.str().c_str(), 4096) != 0) {
+        KcwDebug() << "failed to create title shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-titleChangeRequested-" << m_process->pid();
+    if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
         return;
     }
 }

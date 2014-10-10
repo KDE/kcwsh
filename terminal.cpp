@@ -109,7 +109,7 @@ void Terminal::setTitle(const std::wstring& t) {
     // FIXME: make sure that the title is less then 4096 chars long
     // this is the maximum title length
 //     KcwDebug() << __FUNCTION__ << t;
-    m_outputWriter->setTitle(t);
+    m_inputReader->setTitle(t);
 }
 
 std::wstring Terminal::title() const {

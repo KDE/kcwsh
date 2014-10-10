@@ -24,6 +24,7 @@
 #include "inputwriter.h"
 #include <string>
 
+#include <kcwautomutex.h>
 #include <kcwdebug.h>
 
 InputWriter::InputWriter()
@@ -58,6 +59,17 @@ void InputWriter::writeCtrlC() {
     GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
 }
 
+/**
+ * sets the console title currently contained in m_title
+ */
+void InputWriter::setTitle() {
+    KcwAutoMutex a(m_mutex);
+    a.lock(__FUNCTION__);
+
+    SetConsoleTitle(m_title.data());
+}
+
+
 void InputWriter::init() {
     DWORD dwProcessId = ::GetCurrentProcessId();
 
@@ -67,6 +79,21 @@ void InputWriter::init() {
         KcwDebug() << "failed to open readyRead notifier:" << wss.str();
         return;
     }
+
+    wss.str(L"");
+    wss << L"kcwsh-title-" << dwProcessId;
+    if(m_title.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to create title shared memory:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
+    wss << L"kcwsh-titleChangeRequested-" << dwProcessId;
+    if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
+        return;
+    }
+    addCallback(m_titleChangeRequested, CB(setTitle));
 
     wss.str(L"");
     wss << L"kcwsh-bytesWritten-" << dwProcessId;

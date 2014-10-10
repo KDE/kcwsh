@@ -168,14 +168,6 @@ COORD OutputWriter::scrolledDistance(bool reset) const {
 }
 
 
-void OutputWriter::setTitle(const std::wstring& t) {
-    KcwAutoMutex a(m_mutex);
-    a.lock(__FUNCTION__);
-    memcpy(m_title.data(), t.data(), t.length());
-    a.unlock();
-    m_titleChangeRequested.notify();
-}
-
 std::wstring OutputWriter::title() const {
     std::wstring ret;
     KcwAutoMutex a(m_mutex);
@@ -238,20 +230,13 @@ void OutputWriter::init() {
         return;
     }
 
-    wss.str(L"");
-    wss << L"kcwsh-titleChangeRequested-" << m_process->pid();
-    if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
-        KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
-        return;
-    }
-
-    wss.str(L"");
+/*    wss.str(L"");
     wss << L"kcwsh-titleChanged-" << m_process->pid();
     if(m_titleChanged.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open titleChanged notifier:" << wss.str();
         return;
     }
-
+*/
     wss.str(L"");
     wss << L"kcwsh-shutdown-" << m_process->pid();
     if(m_shutdownEvent.open(wss.str().c_str())) {

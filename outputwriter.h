@@ -57,7 +57,6 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         COORD cursorPosition() const;
         void setCursorPosition(COORD c);
 
-        void setTitle(const std::wstring& t);
         std::wstring title() const;
 
         WCHAR at(COORD c) const;
@@ -83,7 +82,6 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
         KcwNotifier m_shutdownEvent;
         KcwNotifier m_setupEvent;
         KcwNotifier m_scrollEvent;
-        KcwNotifier m_titleChangeRequested;
         KcwNotifier m_titleChanged;
 
         CHAR_INFO *m_historyBuffer;

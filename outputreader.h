@@ -44,7 +44,6 @@ class OutputReader : public KcwEventLoop {
         KCW_CALLBACK(OutputReader, setConsoleSize);
         KCW_CALLBACK(OutputReader, adaptBufferSize);
         KCW_CALLBACK(OutputReader, shutdown);
-        KCW_CALLBACK(OutputReader, setTitle);
 
         void scrollHappened(int horizontal, int vertical);
 //         KCW_CALLBACK(OutputReader, scrollHappened);
@@ -68,7 +67,6 @@ class OutputReader : public KcwEventLoop {
         KcwNotifier m_shutdownEvent;
         KcwNotifier m_scrollEvent;
         KcwNotifier m_exitEventOutput;
-        KcwNotifier m_titleChangeRequested;
         KcwNotifier m_titleChanged;
 
         COORD m_bufferSizeCache;

@@ -236,16 +236,6 @@ COORD OutputReader::getCursorPosition() const {
 }
 
 /**
- * sets the console title currently contained in m_title
- */
-void OutputReader::setTitle() {
-    KcwAutoMutex a(m_mutex);
-    a.lock(__FUNCTION__);
-
-    SetConsoleTitle(m_title.data());
-}
-
-/**
  * function which is supposed to handle scrollevents. This function needs to be really fast
  * TODO
  */
@@ -333,15 +323,6 @@ void OutputReader::init() {
         KcwDebug() << "failed to open setupEvent notifier:" << wss.str();
         return;
     }
-
-    wss.str(L"");
-    wss << L"kcwsh-titleChangeRequested-" << dwProcessId;
-//     KcwDebug() << "opening titleChangeRequested:" << wss.str();
-    if(m_titleChangeRequested.open(wss.str().c_str()) != 0) {
-        KcwDebug() << "failed to open titleChangeRequested notifier:" << wss.str();
-        return;
-    }
-    addCallback(m_titleChangeRequested, CB(setTitle));
 
     wss.str(L"");
     wss << L"kcwsh-titleChanged-" << dwProcessId;
