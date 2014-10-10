@@ -36,11 +36,49 @@
 using namespace KcwSH;
 using namespace std;
 
+#define KcwTestAssert(argument, output) if(!(argument)) { wcout << output << endl; exit(1); }
+
 class TestTerminal : public Terminal {
     public:
+        TestTerminal();
+
         KCW_CALLBACK(TestTerminal, activityChanged);
+        KCW_CALLBACK(TestTerminal, titleChanged);
+        KCW_CALLBACK(TestTerminal, startCmd);
+
+        void startCmdDelayed(vector<wstring> cmd, int delay = 1000);
+
         vector<wstring> m_cmd;
+        wstring m_testcase;
+        wstring m_titleStore;
+        HANDLE m_timer;
 };
+
+TestTerminal::TestTerminal() : Terminal(), m_timer(nullptr) {
+}
+
+void TestTerminal::startCmdDelayed(vector<wstring> cmd, int delay) {
+    m_cmd = cmd;
+    if(m_timer != nullptr) {
+        // FIXME: do something here
+    }
+    m_timer = CreateWaitableTimer(NULL, FALSE, NULL);
+    addCallback(m_timer, CB(startCmd));
+
+    // start the timer for delayed cmd startup.
+    LARGE_INTEGER li;
+    li.QuadPart = -1 * delay * 10000LL; // 1 second
+
+    SetWaitableTimer(m_timer, &li, 0, NULL, NULL, FALSE);
+}
+
+void TestTerminal::startCmd() {
+    // send concatenated commandline as command
+    wostringstream imploded;
+    copy(m_cmd.begin(), m_cmd.end(),
+           ostream_iterator<wstring, wchar_t>(imploded, L" "));
+    sendCommand(imploded.str());
+}
 
 void TestTerminal::activityChanged() {
     // set size to the same size
@@ -48,14 +86,32 @@ void TestTerminal::activityChanged() {
     c.X = 80; c.Y = 25;
     setTerminalSize(c);
 
-    // send concatenated commandline as command
-    wostringstream imploded;
-    copy(m_cmd.begin() + 1, m_cmd.end(),
-           ostream_iterator<wstring, wchar_t>(imploded, L" "));
-    sendCommand(imploded.str());
-
-    Sleep(1000);
+    m_titleStore = title();
 }
+
+void TestTerminal::titleChanged() {
+    static int counter = 0;
+    counter++;
+    switch(counter) {
+        case 1: {
+                    KcwTestAssert(title() != m_titleStore, L"title isn't changed after startup");
+                    m_titleStore = title();
+                    break;
+        }
+        case 2: break;
+        case 3: {
+                    KcwTestAssert(title() == L"New Title here", L"title isn't the one from the executable");
+                    break;
+        }
+        case 4: {
+                    KcwTestAssert(title() == m_titleStore, L"title isn't set back to original title");
+                    quit();
+                    break;
+        }
+        default: KcwTestAssert(false, L"error: unreachable point reached"); break;
+    };
+}
+
 
 int main() {
     int argc;
@@ -66,18 +122,22 @@ int main() {
     int result = 0;
 
     wstring shell;
+    wstring testcase;
 
     wcout << L"Begin testing Terminal" << endl;
+    args.erase(args.begin());
     if(args.size() == 2) {
-
-    } else if(args.size() >= 3) {
-        shell = args[0];
+        testcase = args[0];
         args.erase(args.begin());
+        if(testcase == L"shell") {
+            shell = args[0];
+            args.erase(args.begin());
+        }
     } else {
         wcout << L"wrong number of arguments" << endl << endl;
-        wcout << L"\tsyntax: " << args[0] << L" COMMAND" << endl;
+        wcout << L"\tsyntax: " << args[0] << L" testcase TESTEREXECUTABLE" << endl;
         wcout << L"OR" << endl;
-        wcout << L"\tsyntax: " << args[0] << L" SHELL COMMAND [ARGUMENTS]" << endl << endl;
+        wcout << L"\tsyntax: " << args[0] << L" shell SHELL COMMAND [ARGUMENTS]" << endl << endl;
         wcout << L"where SHELL is an executable windows console application and COMMAND can be" << endl;
         wcout << L"a command run in that shell with any number of [ARGUMENTS]." << endl;
         return -1;
@@ -95,11 +155,12 @@ int main() {
     env[L"KCW_DEBUG"] = L"1";
 
     t.setEnvironment(env);
-    t.m_cmd = args;
+    t.m_testcase = testcase;
+    t.startCmdDelayed(args);
 
     HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
-    li.QuadPart = -20 * 1000000LL; // 2 seconds
+    li.QuadPart = -200 * 1000000LL; // 20 seconds
 
     t.addCallback(timer, CB(Terminal::quit), &t);
 

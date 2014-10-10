@@ -8,5 +8,5 @@ add_executable(titletester titletester.cpp)
 
 add_executable(terminaltest terminaltest.cpp)
 target_link_libraries(terminaltest kcwsh)
-add_test(NAME simpletest COMMAND terminaltest echo)
-add_test(NAME titletest COMMAND terminaltest titletester)
+add_test(NAME simpletest COMMAND terminaltest simple echo)
+add_test(NAME titletest COMMAND terminaltest title $<TARGET_FILE:titletester> )
