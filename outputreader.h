@@ -69,8 +69,6 @@ class OutputReader : public KcwEventLoop {
         KcwNotifier m_exitEventOutput;
         KcwNotifier m_titleChanged;
 
-        COORD m_bufferSizeCache;
-
         HANDLE m_mutex;
         HANDLE m_timer;
         HANDLE m_consoleHdl;

@@ -49,7 +49,6 @@ inline bool LoadFunc(HMODULE hmod, const char *name, pfn_t &fn)
 OutputReader::OutputReader()
 : m_consoleHdl(GetStdHandle(STD_OUTPUT_HANDLE))
 , KcwEventLoop() {
-    m_bufferSizeCache.X = 1; m_bufferSizeCache.Y = 1;
     // TODO: if this fails, say something
     minimizeConsoleFont();
     COORD c;
@@ -156,14 +155,12 @@ void OutputReader::setConsoleSize() {
     SMALL_RECT sr = csbi.srWindow;
     COORD bufferSize = csbi.dwSize;
     COORD oldSize = bufferSize;
-    m_bufferSizeCache = *m_bufferSize;
 
     // check if newly requested size is totally contained in maxSize
     // if not restrict it to the maximum size
-    if(m_bufferSizeCache >= maxSize) {
-        if(m_bufferSizeCache.X > maxSize.X) m_bufferSizeCache.X = maxSize.X;
-        if(m_bufferSizeCache.Y > maxSize.Y) m_bufferSizeCache.Y = maxSize.Y;
-        *m_bufferSize = m_bufferSizeCache;
+    if(*m_bufferSize >= maxSize) {
+        if(m_bufferSize->X > maxSize.X) m_bufferSize->X = maxSize.X;
+        if(m_bufferSize->Y > maxSize.Y) m_bufferSize->Y = maxSize.Y;
     }
 
     // Resizing a console window actually consists of two steps: adjusting the size of the buffer,
@@ -175,16 +172,16 @@ void OutputReader::setConsoleSize() {
 
     // increasing the view requires a buffer increase first
     // X is the width (number of columns)
-    if(oldSize.X < m_bufferSizeCache.X) {
-        bufferSize.X = m_bufferSizeCache.X;
+    if(oldSize.X < m_bufferSize->X) {
+        bufferSize.X = m_bufferSize->X;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to increase screen buffer width to" << bufferSize.X << "Error:" << dw;
         }
     }
     // Y is the height (number of lines)
-    if(oldSize.Y < m_bufferSizeCache.Y) {
-        bufferSize.Y = m_bufferSizeCache.Y;
+    if(oldSize.Y < m_bufferSize->Y) {
+        bufferSize.Y = m_bufferSize->Y;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to increase screen buffer height to" << bufferSize.Y << "Error:" << dw;
@@ -192,27 +189,27 @@ void OutputReader::setConsoleSize() {
     }
 
     // now change the size of the view
-    sr.Bottom = sr.Top + m_bufferSizeCache.Y - 1;
+    sr.Bottom = sr.Top + m_bufferSize->Y - 1;
     if(!SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &sr)) {
         DWORD dw = GetLastError();
         KcwDebug() << "failed to set console height!" << dw;
     }
-    sr.Right = sr.Left + m_bufferSizeCache.X - 1;
+    sr.Right = sr.Left + m_bufferSize->X - 1;
     if(!SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &sr)) {
         DWORD dw = GetLastError();
         KcwDebug() << "failed to set console width!" << dw;
     }
 
     // in the end, change the buffer size, if it gets decreased
-    if(oldSize.X > m_bufferSizeCache.X) {
-        bufferSize.X = m_bufferSizeCache.X;
+    if(oldSize.X > m_bufferSize->X) {
+        bufferSize.X = m_bufferSize->X;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to decrease screen buffer width to" << bufferSize.X << "Error:" << dw;
         }
     }
-    if(oldSize.Y > m_bufferSizeCache.Y) {
-        bufferSize.Y = m_bufferSizeCache.Y;
+    if(oldSize.Y > m_bufferSize->Y) {
+        bufferSize.Y = m_bufferSize->Y;
         if(!SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), bufferSize)) {
             DWORD dw = GetLastError();
             KcwDebug() << "failed to decrease screen buffer height to" << bufferSize.Y << "Error:" << dw;
@@ -444,11 +441,6 @@ void OutputReader::init() {
 
     addCallback(m_exitEventOutput);
     ZeroMemory(m_output.data(), m_bufferSize.data()->X * m_bufferSize.data()->Y * sizeof(CHAR_INFO));
-
-    if(memcmp(&m_bufferSizeCache, m_bufferSize.data(), sizeof(COORD)) != 0) {
-        m_bufferSizeCache = *m_bufferSize;
-//        m_bufferSizeChanged.notify();
-    }
 
     // everything is set up, start the timer for readData
     SetWaitableTimer(m_timer, &li, period, NULL, NULL, TRUE);
