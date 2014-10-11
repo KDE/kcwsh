@@ -61,7 +61,7 @@ class OutputReader : public KcwEventLoop {
         KcwSharedMemory<COORD> m_scrolledDistance;
 
         KcwNotifier m_bufferChanged;
-        KcwNotifier m_bufferSizeChanged;
+        KcwNotifier m_sizeChangeRequested;
         KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_setupEvent;
         KcwNotifier m_shutdownEvent;

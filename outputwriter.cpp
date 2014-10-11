@@ -102,7 +102,7 @@ void OutputWriter::setBufferSize(COORD c) {
     *m_bufferSize = c;
     m_output.resize(c.X * c.Y);
     a.unlock();
-    m_bufferSizeChanged.notify();
+    m_sizeChangeRequested.notify();
 }
 
 WCHAR OutputWriter::at(COORD c) const {
@@ -203,9 +203,9 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
-    wss << L"kcwsh-bufferSizeChanged-" << m_process->pid();
-    if(m_bufferSizeChanged.open(wss.str().c_str()) != 0) {
-        KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
+    wss << L"kcwsh-sizeChangeRequested-" << m_process->pid();
+    if(m_sizeChangeRequested.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open sizeChangeRequested notifier:" << wss.str();
         return;
     }
 
@@ -300,7 +300,7 @@ void OutputWriter::init() {
         return;
     }
 
-//     addCallback(m_bufferSizeChanged, CB(sizeChanged));
+//     addCallback(m_sizeChangeRequested, CB(sizeChanged));
     addCallback(m_bufferChanged, CB(bufferChanged));
     addCallback(m_cursorPositionChanged, CB(cursorPositionChanged));
     addCallback(m_scrollEvent, CB(hasScrolled));

@@ -365,12 +365,12 @@ void OutputReader::init() {
     *m_scrolledDistance = n;
 
     wss.str(L"");
-    wss << L"kcwsh-bufferSizeChanged-" << dwProcessId;
-    if(m_bufferSizeChanged.open(wss.str().c_str()) != 0) {
-        KcwDebug() << "failed to open bufferSizeChanged notifier:" << wss.str();
+    wss << L"kcwsh-sizeChangeRequested-" << dwProcessId;
+    if(m_sizeChangeRequested.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open sizeChangeRequested notifier:" << wss.str();
         return;
     }
-    addCallback(m_bufferSizeChanged, CB(setConsoleSize));
+    addCallback(m_sizeChangeRequested, CB(setConsoleSize));
 
     wss.str(L"");
     wss << L"kcwsh-bufferChanged-" << dwProcessId;
