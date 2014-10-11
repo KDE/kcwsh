@@ -330,7 +330,6 @@ DWORD Terminal::run() {
     m_outputWriter->start();
 
     m_outputWriter->setBufferSize(m_termSize);
-    sizeChanged();
 
     m_process.resume();
 

@@ -276,6 +276,15 @@ void OutputReader::HandleConsoleEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd
             }
             break;
         }
+        case EVENT_CONSOLE_LAYOUT: {
+            COORD windowSize = out_reader->getConsoleSize();
+
+            static COORD oldSize = { 1, 1 };
+            if(oldSize != windowSize) {
+                out_reader->m_sizeChanged.notify();
+                oldSize = windowSize;
+            }
+        }
         default: {
 //             KcwDebug()
             break;
@@ -363,6 +372,13 @@ void OutputReader::init() {
     COORD n;
     ZeroMemory(&n, sizeof(COORD));
     *m_scrolledDistance = n;
+
+    wss.str(L"");
+    wss << L"kcwsh-sizeChanged-" << dwProcessId;
+    if(m_sizeChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open sizeChanged notifier:" << wss.str();
+        return;
+    }
 
     wss.str(L"");
     wss << L"kcwsh-sizeChangeRequested-" << dwProcessId;

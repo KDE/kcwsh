@@ -203,6 +203,13 @@ void OutputWriter::init() {
     }
 
     wss.str(L"");
+    wss << L"kcwsh-sizeChanged-" << m_process->pid();
+    if(m_sizeChanged.open(wss.str().c_str()) != 0) {
+        KcwDebug() << "failed to open sizeChanged notifier:" << wss.str();
+        return;
+    }
+
+    wss.str(L"");
     wss << L"kcwsh-sizeChangeRequested-" << m_process->pid();
     if(m_sizeChangeRequested.open(wss.str().c_str()) != 0) {
         KcwDebug() << "failed to open sizeChangeRequested notifier:" << wss.str();
@@ -300,7 +307,7 @@ void OutputWriter::init() {
         return;
     }
 
-//     addCallback(m_sizeChangeRequested, CB(sizeChanged));
+    addCallback(m_sizeChanged, CB(sizeChanged));
     addCallback(m_bufferChanged, CB(bufferChanged));
     addCallback(m_cursorPositionChanged, CB(cursorPositionChanged));
     addCallback(m_scrollEvent, CB(hasScrolled));

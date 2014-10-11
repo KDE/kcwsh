@@ -62,6 +62,7 @@ class OutputReader : public KcwEventLoop {
 
         KcwNotifier m_bufferChanged;
         KcwNotifier m_sizeChangeRequested;
+        KcwNotifier m_sizeChanged;
         KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_setupEvent;
         KcwNotifier m_shutdownEvent;

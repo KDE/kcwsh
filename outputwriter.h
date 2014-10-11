@@ -77,6 +77,7 @@ class KCWSH_EXPORT OutputWriter : public KcwThread {
 
         KcwNotifier m_bufferChanged;
         KcwNotifier m_sizeChangeRequested;
+        KcwNotifier m_sizeChanged;
         KcwNotifier m_cursorPositionChanged;
         KcwNotifier m_exitEventOutput;
         KcwNotifier m_shutdownEvent;
