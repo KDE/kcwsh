@@ -44,13 +44,17 @@ class TestTerminal : public Terminal {
 
         KCW_CALLBACK(TestTerminal, activityChanged);
         KCW_CALLBACK(TestTerminal, titleChanged);
+        KCW_CALLBACK(TestTerminal, sizeChanged);
         KCW_CALLBACK(TestTerminal, startCmd);
+        KCW_CALLBACK(TestTerminal, startResize);
 
         void startCmdDelayed(vector<wstring> cmd, int delay = 1000);
+        void startResizeTest();
 
         vector<wstring> m_cmd;
         wstring m_testcase;
         wstring m_titleStore;
+        COORD m_testSize;
         HANDLE m_timer;
 };
 
@@ -80,12 +84,15 @@ void TestTerminal::startCmd() {
     sendCommand(imploded.str());
 }
 
+void TestTerminal::startResize() {
+    setTerminalSize(m_testSize);
+}
+
 void TestTerminal::activityChanged() {
     // set size to the same size
     COORD c;
     c.X = 80; c.Y = 25;
     setTerminalSize(c);
-
     m_titleStore = title();
 }
 
@@ -112,6 +119,57 @@ void TestTerminal::titleChanged() {
     };
 }
 
+bool operator == (COORD a, COORD b) {
+    return a.X == b.X && a.Y == b.Y;
+}
+
+bool operator != (COORD a, COORD b) {
+    return a.X != b.X || a.Y != b.Y;
+}
+
+void TestTerminal::sizeChanged() {
+    if(m_testcase != L"resize") return;
+
+    static int counter = 0;
+    counter++;
+    COORD c;
+    switch(counter) {
+        case 1: {
+                    c = { 80, 25 };
+                    KcwTestAssert(terminalSize() == c, L"terminal didn't reach default size after startup");
+                    m_testSize = { 162, 52 };
+                    break;
+        }
+        case 2: {
+                    KcwTestAssert(terminalSize() == m_testSize, L"terminal didn't reach previously set size");
+                    m_testSize = { 160, 50 };
+                    break;
+        }
+        case 3: {
+                    KcwTestAssert(terminalSize() == m_testSize, L"terminal didn't reach previously set size");
+                    m_testSize = { 10000, 10000 }; // we want to restrict to the maximum size now
+                    break;
+        }
+        case 4: {
+                    KcwTestAssert(terminalSize() != m_testSize, L"terminal should be restricted to maximum size");
+                    quit();
+                    break;
+        }
+        default: KcwTestAssert(false, L"error: unreachable point reached"); break;
+    };
+    wcout << L"leaving sizeChanged " << counter << endl;
+}
+
+void TestTerminal::startResizeTest() {
+    HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
+    addCallback(timer, CB(startResize));
+
+    // start the timer for delayed resize.
+    LARGE_INTEGER li;
+    li.QuadPart = -1000 * 10000LL; // 1 second
+
+    SetWaitableTimer(timer, &li, 1000, NULL, NULL, FALSE);
+}
 
 int main() {
     int argc;
@@ -156,7 +214,12 @@ int main() {
 
     t.setEnvironment(env);
     t.m_testcase = testcase;
-    t.startCmdDelayed(args);
+    if(testcase == L"shell" || testcase == L"title") {
+        t.startCmdDelayed(args);
+    } else if(testcase == L"resize") {
+        t.m_testSize = { 80, 25 };
+        t.startResizeTest();
+    }
 
     HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
     LARGE_INTEGER li;
